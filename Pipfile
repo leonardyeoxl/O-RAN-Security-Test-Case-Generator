@@ -5,6 +5,11 @@ name = "pypi"
 
 [packages]
 streamlit = "*"
+spacy = "*"
+spacy-transformers = "*"
+setuptools = "*"
+nltk = "*"
+ipython = "*"
 
 [dev-packages]
 
