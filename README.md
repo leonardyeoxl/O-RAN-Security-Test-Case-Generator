@@ -1,0 +1,1 @@
+# O-RAN-Near-RT-RIC-Misuse-Case-Scenario-Generator
