@@ -9,6 +9,7 @@
 - `pipenv install IPython`
 
 ## Run
+- `pipenv shell`
 - `streamlit run app.py`
 
 ## Tests
