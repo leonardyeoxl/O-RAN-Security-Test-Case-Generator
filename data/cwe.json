@@ -1,0 +1,13 @@
+[
+    {
+        "cwe_id": "CWE-311",
+        "type": "Missing Encryption of Sensitive Data",
+        "description": "The product does not encrypt sensitive or critical information before storage or transmission. The lack of proper data encryption passes up the guarantees of confidentiality, integrity, and accountability that properly implemented encryption conveys.",
+        "tags": [
+            "Encryption",
+            "Encrypt",
+            "Sensitive Data",
+            "Data Encryption"
+        ]
+    }
+]
