@@ -18,7 +18,7 @@
 Given a dialer xApp and a listener xApp
 And dialer xApp connected to RMR succesfully
 And listener xApp connected to RMR succesfully
-When dialer xApp sends a message to the listener xApp via RMR
+When dialer xApp sends a message to the listener xApp via RMR transmission medium
 Then the listener xApp receive the message
 ```
 
