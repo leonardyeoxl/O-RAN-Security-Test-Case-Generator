@@ -1,5 +1,5 @@
-[
-    {
+{
+    "CAPEC-117": {
         "capec_id": "CAPEC-117",
         "type": "Interception",
         "description": "An adversary monitors data streams to or from the target for information gathering purposes. This attack may be undertaken to solely gather sensitive information or to support a further attack against the target. This attack pattern can involve sniffing network traffic as well as other types of data streams (e.g. radio). The adversary can attempt to initiate the establishment of a data stream or passively observe the communications as they unfold. In all variants of this attack, the adversary is not the intended recipient of the data stream. In contrast to other means of gathering information (e.g., targeting data leaks), the adversary must actively position themself so as to observe explicit data channels (e.g. network traffic) and read the content. However, this attack differs from a Adversary-In-the-Middle (CAPEC-94) attack, as the adversary does not alter the content of the communications nor forward data to the intended recipient.",
@@ -24,13 +24,14 @@
             "Data privacy"
         ]
     },
-    {
+    "CAPEC-157": {
         "capec_id": "CAPEC-157",
         "type": "Sniffing Attacks",
         "description": "In this attack pattern, the adversary intercepts information transmitted between two third parties. The adversary must be able to observe, read, and/or hear the communication traffic, but not necessarily block the communication or change its content. Any transmission medium can theoretically be sniffed if the adversary can examine the contents between the sender and recipient. Sniffing Attacks are similar to Adversary-In-The-Middle attacks (CAPEC-94), but are entirely passive. AiTM attacks are predominantly active and often alter the content of the communications themselves.",
         "mitigations": "Encrypt sensitive information when transmitted on insecure mediums to prevent interception.",
         "child_relation": ["CAPEC-31", "CAPEC-57", "CAPEC-65", "CAPEC-158", "CAPEC-609"],
         "parent_relation": ["CAPEC-117"],
+        "related_weaknesses": ["CWE-311"],
         "tags": [
             "Sniffing Attacks",
             "Information interception",
@@ -47,7 +48,8 @@
             "Encryption",
             "Insecure mediums",
             "Information leakage",
-            "Network security"
+            "Network security",
+            "Transmission Medium"
         ]
     }
-]
+}
