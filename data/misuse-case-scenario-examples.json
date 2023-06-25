@@ -1,0 +1,3 @@
+[
+    "Given users have been created with default attributes and without skeleton file\nWhen attacker logs in using the webUI with malicious content\nThen the input should be sanitized and verified before it is used as proper input"
+]

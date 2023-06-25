@@ -1,5 +1,5 @@
-[
-    {
+{
+    "Malicious xApps deployed on the Near-RT RIC": {
         "key_issue_title": "Malicious xApps deployed on the Near-RT RIC",
         "key_issue_detail": "xApps on the Near-RT RIC can collect near real-time information from E2 Nodes and influence behavior of E2 Nodes thereby impacting cell performance and delivery of services to a group of UEs or a single UE. The security requirements for onboarding and hosting xApps should be defined to reduce the risk of unauthorized, untrusted, or malicious xApps to be deployed into the Near-RT RIC. Malicious xApps could be onboarded onto the Near-RT RIC with the intent of manipulating or negatively impacting the delivery of services to subscribers, the RAN, or the core network. Malicious xApps could also be onboarded onto the Near-RT RIC with the intent of accessing, manipulating or negatively impacting the privacy of subscribers, the RAN or the core network.",
         "security_threats": [
@@ -39,7 +39,7 @@
             "UE slice priority"
         ]
     },
-    {
+    "Compromised xApp": {
         "key_issue_title": "Compromised xApp",
         "key_issue_detail": "Vulnerabilities can potentially exist in any xApp. Those can be e.g.: Security misconfiguration, such enabled but unnecessary protocols, Weak or misconfigured authentication and authorization, A malicious xApp an untrusted source may intentionally provide, A backdoor intentionally inserted in the xApp by a trusted source, An attacker submitting requests without prior authentication and authorization by executing an injection attack to manipulate configurations, access logs, perform remote code execution, etc. If attackers can find an exploitable xApp, they can disrupt the offered network service and potentially take over another xApp or the near-RT RIC. The actual consequences may vary. For example, an attacker may gain the ability to alter data transmitted by any accessible API, extract sensitive information, etc.",
         "security_threats": [
@@ -86,7 +86,7 @@
             "Authentication/Authorization schemas"
         ]
     },
-    {
+    "Conflicting xApps": {
         "key_issue_title": "Conflicting xApps",
         "key_issue_detail": "xApps can change RAN parameters to optimize a specific network metric, which could result in conflicting actions between xApps. Conflicting xApps can unintentionally or maliciously impact O-RAN system functions such as mobility management, admission controls, radio resource control, and load balancing to degrade the performance or availability of the network. The functional split between the Near-RT RIC and the E2-Node depends on the available xApps and the capabilities exposed by the O-gNB. This can create possible conflicts between the decisions taken by the Near-RT RIC and the O-gNB that could lead to instability in the network, which introduces vulnerabilities that could be exploited by threat actors.",
         "security_threats": [
@@ -97,7 +97,7 @@
         "key_issue_relation": ["T-xApp-02"],
         "tags": []
     },
-    {
+    "Isolation between xApps": {
         "key_issue_title": "Isolation between xApps",
         "key_issue_detail": "The Near-RT RIC enables near real time control and optimization of RAN elements and resources via fine-grained data collection and actions over E2 interface, and includes open interfaces (A1, O1) to the management and orchestration system (SMO). This will be achieved using a collection of xApps, with each xApp providing a specific functionality by consuming a specific subset of data or producing data for other xApps or Near-RT RIC platform. To provide its desired functionality, the xApps would interact with other Near-RT RIC platform components. In a multi-vendor environment, where 3rd party xApps and those provided by the RIC vendor are deployed together, an xApp can be used to impact the other co-located xApps/Near-RT RIC platform thus creating a noisy neighbour effect where an xApp can overconsume the underlying shared resources provided by the Near-RT RIC platform like CPU, memory, I/O bandwidth, etc. and can negatively affect the performance of other co-located xApps and potentially other CNFs sharing the same underlying platform. It's also possible that xApps have different levels of access to the data and resources available on Near-RT RIC. Appropriate isolation is needed for xAPPs that have different threat profiles.",
         "security_threats": [
@@ -115,7 +115,7 @@
         "key_issue_relation": [],
         "tags": []
     },
-    {
+    "Compromise of ML data pipelines used in Near-RT RIC": {
         "key_issue_title": "Compromise of ML data pipelines used in Near-RT RIC",
         "key_issue_detail": "The Near-RT RIC contains database(s) which contain historic data collected from UE and RAN information. This historic data can be used to train various ML models used in Near-RT RIC. Also, streaming data may be collected from E2 nodes by some ML based xApps, and used either for training ML models or deriving inferences. ML data pipelines can consist of several ML models, using one or more sources of data for training as well as inference derivation. xApps can have ML pipelines implemented within, or can be using ML pipelines from another xApps that provide analytics services. ML data pipelines can be compromised due to: A potential vulnerability existing in the xApp that implements the ML pipeline, Poisoning of ML training data due to compromised E2 node(s), Poisoning of ML training data due to compromised UE(s), Compromised database(s) which store historic data used for ML training, Compromised interfaces of Near-RT RIC allowing a malicious intruder to alter some of the training data that may be used to train ML models used by xApps",
         "security_threats": [
@@ -134,7 +134,7 @@
         "key_issue_relation": [],
         "tags": []
     },
-    {
+    "Altering the ML learning models used in Near-RT RIC": {
         "key_issue_title": "Altering the ML learning models used in Near-RT RIC",
         "key_issue_detail": "",
         "security_threats": [
@@ -149,7 +149,7 @@
         "key_issue_relation": [],
         "tags": []
     },
-    {
+    "Data Protection and Privacy in Near-RT RIC Database": {
         "key_issue_title": "Data Protection and Privacy in Near-RT RIC Database",
         "key_issue_detail": "The Near-RT RIC contains database(s) which contain sensitive UE and RAN information, including history of the network state, configurations related to E2 Nodes, cells, bearers, flows, UE identities, and the mappings between them. Overlayed on top of these databases is the shared data layer (SDL) which enables xApp access. There is currently no model for authentication or authorization for the database(s). The Near-RT RIC requires security mechanisms in place to ensure xApps have authenticated access to the database(s) and may access only parts of the database(s) in which they have permission to access. Adverse effects may result if no security mechanisms are in place, such as manipulation of database information.",
         "security_threats": [
@@ -164,7 +164,7 @@
         "key_issue_relation": [],
         "tags": []
     },
-    {
+    "Onboarding untrusted xApps": {
         "key_issue_title": "Onboarding untrusted xApps",
         "key_issue_detail": "An xApp is an application designed to run on Near-RT RIC. It may consist of one or more microservices. It is independent of Near-RT RIC and may be provided by any third party. As part of offering its service to Near RT-RIC, some of the xApp’s functionalities include communicating with Near-RT RIC platform via Near-RT RIC API, providing the APIs it produces to other xApps and Near-RT RIC, collecting near real-time information from E2 Nodes and influence behaviour of E2 Nodes and accessing Near-RT RIC Databases (via SDL) which gives access to sensitive information related to UE and RAN. Onboarding an untrusted third party xApp onto Near-RT RIC can create serious security issues which can compromise the Near-RT RIC functionality, impact the availability of other xApps and have cascading impact on overall performance of ORAN.",
         "security_threats": [
@@ -183,7 +183,7 @@
         "key_issue_relation": [],
         "tags": []
     },
-    {
+    "xApp exploitation via malicious A1 policies": {
         "key_issue_title": "xApp exploitation via malicious A1 policies",
         "key_issue_detail": "The Non-RT RIC defines policies that are provided to the Near-RT RIC over the A1 interface. The purpose of the A1 policies is to guide and optimize the RAN, and the policies inform behavior of xApps in the Near-RT RIC. Unauthorized access to the Non-RT RIC enables the creation of 'false policies' that can be issued to the Near-RT RIC for enforcement. Existing Near-RT RIC policies could also be modified to achieve a false policy. False policies passed to the Near-RT RIC would be persistent until they were modified or deleted by the Non-RT RIC or the Near-RT RIC power cycles.",
         "security_threats": [
@@ -198,7 +198,7 @@
         "key_issue_relation": [],
         "tags": []
     },
-    {
+    "Near-RT RIC APIs authentication": {
         "key_issue_title": "Near-RT RIC APIs authentication",
         "key_issue_detail": "Like any software, APIs can be compromised, and data can be intercepted. APIs can be manipulated causing service disruptions and can be subject as well to DoS attacks. Authentication, an essential part of secure communication, ensures that an attribute claimed by a given entity (e.g., its identity) is actually correct. In the context of secure communication between xApps and Near-RT RIC platform, the platform shall authenticate all xApps instances and only provide them with the information and services for which they are authorized through the use of the Near-RT RIC APIs, as a key objective to guarantee the validity of the transferred messages. xApps can also act as service producers, exposing APIs to be consumed by other xApps for example. In that case, the xApps 'producers' shall authenticate the instances interested in consuming those xApp services. Authentication is also a prerequisite for conducting authorization which itself is another key issue for API Security. Note that using the xApp registration procedure Near-RT platform performs authentication and validation of the xApp, addressed in solution #1, however xApps, as consumers of the services exposed by Near-RT RIC APIs, are not authenticated as per current O-RAN specifications at the time of requesting those services.",
         "security_threats": [
@@ -214,7 +214,7 @@
         "key_issue_relation": [],
         "tags": []
     },
-    {
+    "Near-RT RIC APIs authorization": {
         "key_issue_title": "Near-RT RIC APIs authorization",
         "key_issue_detail": "Authorization is the function of specifying and enforcing access rights or privileges to certain resources or services. In the actual context of Near-RT RIC, the platform as API producer shall be responsible to specify those rights/privileges for the platform services as resources to the xApps as consumers. In general, an xApp should only have the required set of permissions to perform the actions for which they are authorized, and no more. Authorization mechanisms are to be enforced by the Near-RT RIC platform among other in the following key API procedures: Discovery of Near-RT RIC APIs: The Near-RT RIC platform shall provide means to restrict xApps from discovery of some published APIs based on configuration policies, E2 Subscription API procedure: The subscription management shall be based on operator's policies. An xApp may be restricted to interface with only a subset of E2 Nodes by such policies. This procedure establishes a set of preconditions that assume authorization procceses 1) xApp has been authorized to issue E2 Subscription API requests, 2) xApp has been authorized to request guidance from Conflict mitigation and 3) xApp Subscription Management has been configured to permit E2 Subscription API requests only from specific list of xApps, E2 Control API procedure: Only authorized xApps may initiate RIC control request messages issued by the Near-RT RIC over the E2 interface to the E2 Nodes, for a specific scope (e.g, E2 Node list, RAN function, etc.), E2 Guidance API procedure: The purpose of this procedure only authorized xApp to obtain guidance from the conflict mitigation platform function prior to initiating an action, SDL API procedures: The precondition to consume the services exposed by SDL API (e.g, client registration, fetch data, notification, store, etc.) is that xApps have been successfully registered and authorized.",
         "security_threats": [
@@ -229,7 +229,7 @@
         "key_issue_relation": [],
         "tags": []
     },
-    {
+    "xAppID abuse": {
         "key_issue_title": "xAppID abuse",
         "key_issue_detail": "As part of the xApp registration procedure into the Near-RT RIC platform, the platform assigns an identity (ID) to the xApp, so called xApp ID. This xApp ID is assumed to be used in xApps API request messages to the Near-RT RIC platform to facilitate the Near-RT RIC platform the identification of the xApp (API service consumer).  For the platform to trust the xAppID in the xApps request messages it is necessary to bind this xAppID to some trust anchor. Also, the xAppID needs to be uniquely identifying a single xApp instance.",
         "security_threats": [
@@ -243,4 +243,4 @@
         "key_issue_relation": [],
         "tags": []
     }
-]
+}

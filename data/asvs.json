@@ -1,5 +1,5 @@
-[
-    {
+{
+    "6.1.1": {
         "asvs_id": "6.1.1",
         "type": "Data Classification",
         "description": "Verify that regulated private data is stored encrypted while at rest, such as personally identifiable information (PII), sensitive personal information, or data assessed likely to be subject to EU's GDPR.",
@@ -13,7 +13,7 @@
             "Data Encryption"
         ]
     },
-    {
+    "1.9.1": {
         "asvs_id": "1.9.1",
         "type": "Communications Architectural Requirements",
         "description": "Verify the application encrypts communications between components, particularly when these components are in different containers, systems, sites, or cloud providers",
@@ -28,4 +28,4 @@
             "Communications"
         ]
     }
-]
+}

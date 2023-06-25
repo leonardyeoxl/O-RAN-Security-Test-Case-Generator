@@ -1,5 +1,5 @@
-[
-    {
+{
+    "T-NEAR-RT-01": {
         "threat_id": "T-NEAR-RT-01",
         "threat_title": "Malicious xApps can exploit UE identification, track UE location and change UE priority",
         "threat_description": "xApps in the Near-RT-RIC have the capability to manipulate behavior of a certain cell, a group of UEs, and a specific UE. A malfunctioning or unavailable root of trust could potentially cause issues on the network and compromise RAN performance, privacy, etc. For example, the xApp could track a certain subscriber or impact service for a subscriber or a dedicated area. In addition, an xApp can receive order via A1 to control a certain UE and if a malfunctioning xApp receives an order to prioritize this UE, then the owner of the malfunctioning xApp knows a VIP that they want to track is in a certain area. With this command exposure, the attacker can obtain a rough location of a very important person and change the order from prioritize to deprioritize for a UE. Further, E2 interface exposes UE identification that can be exploited by a malicious xApp. As the E2 interface (similar to A1 interface) can point out a certain UE in the network, this will create a correlation between the randomized (anonymized) UE identities between the RAN nodes. For example, a xApp can potentially be used as a “sniffer” for UE identification. The additional challenge for the Near-RT RIC / E2 compared to the Non-RT RIC / A1 is that more frequent signaling is expected over the E2 interface to enable near-real-time operation. Therefore, the UE identifier will be exchanged more frequently over the E2 than over the A1.",
@@ -34,7 +34,7 @@
             "E2 interface correlation"
         ]
     },
-    {
+    "T-NEAR-RT-02": {
         "threat_id": "T-NEAR-RT-02",
         "threat_title": "Risk of deployment of a malicious xApp on Near-RT RIC",
         "threat_description": "The security threats associated with the onboarding and deployment of malicious xApps include: Malicious xApps attaining unauthorized access to the Near-RT RIC and E2 Nodes, Malicious xApps abusing radio network information and control capabilities over RAN functions, Malicious xApp impacting service for a subscriber or a dedicated area, Malicious xApp exploiting UE identification, tracking UE location and changing UE slice priority",
@@ -73,7 +73,7 @@
             "risk assessment"
         ]
     },
-    {
+    "T-NEAR-RT-03": {
         "threat_id": "T-NEAR-RT-03",
         "threat_title": "Attackers exploit non authenticated, weakly or incorrectly authenticated Near-RT RIC APIs",
         "threat_description": "Not mutually authenticating xApps and Near-RT RIC platform APIs could potentially allow attackers to perform the following type of attacks: Operating malicious xApp claiming to be genuine in order to request certain services (theft of services) or information (data leakage), Man in the middle attacks between a genuine xApp and a Near-RT RIC platform API, Querying network or UE information from a compromised xApp to Near-RT RIC platform (e.g. database via SDL API), thereby leaking potentially sensitive data about network and/or UE (potential privacy issues), Subscribing a malicious xApp to services provided by the Near-RT RIC platform, such as API-related events notifications, discovery of APIs, E2SM, etc. The use of weak credentials in the process of API authentication can compromise the overall system. The user/password combination isn’t considered safe, not only for password related attacks (e.g., brute-force), but also it would represent a high risk to allow xApps, especially 3rd party xApps, to store the user/password combo. This approach would extend the attack surface into xApps side. As a reference, OWASP API Security Top 10 report [26]  indicates that authentication mechanisms are often implemented incorrectly, allowing attackers to compromise authentication tokens or to exploit implementation flaws to assume other user's identities temporarily or permanently. Compromising system's ability to identify the client/user, compromises API security overall.",
@@ -112,7 +112,7 @@
             "API implementation flaws"
         ]
     },
-    {
+    "T-NEAR-RT-04": {
         "threat_id": "T-NEAR-RT-04",
         "threat_title": "Attackers exploit non authorized Near-RT RIC APIs to access to resources and services which they are not entitled to use.",
         "threat_description": "If the API consumers are not authorized by the API producers, attackers (e.g, malicious xApps) would potentially be able to perform the following types of attacks: Abuse and/or theft of services or information (data leakage), requesting and successfully obtaining them from the platform, e.g, in order to extract potentially sensitive information from the network and/or UEs, Negatively impacting the network performance due to malicious policies over E2 Nodes, Flooding the platform with resource demanding operations that may lead to a Denial of Service attack. As a reference, OWASP API Security Top 10 report [26] indicates that ‘Broken Object Level Authorization’ has been the most common and impactful attack on APIs. Even if the application implements a proper infrastructure for authorization checks, developers might forget to use these checks before accessing a sensitive object. Unauthorized access can result in data disclosure to unauthorized parties, data loss, or data manipulation. In the actual context of Near-RT RIC [27], the platform as API producer shall be responsible to specify those rights/privileges for the platform services as resources to the xApps as consumers. In general, an xApp should only have the required set of permissions to perform the actions for which they are authorized, and no more. Note. The investigation of services for which the API producer is the xApp is for further study",
@@ -155,4 +155,4 @@
             "API best practices"
         ]
     }
-]
+}
