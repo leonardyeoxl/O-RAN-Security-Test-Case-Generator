@@ -13,12 +13,14 @@
 - `streamlit run app.py`
 
 ## Tests
+### Example Use Case Scenario Title
+`Transmitting  Messages via RMR Transmission Medium`
 ### Example Use Case Scenario
 ```
 Given a dialer xApp and a listener xApp
-And dialer xApp connected to RMR succesfully
-And listener xApp connected to RMR succesfully
-When dialer xApp sends a message to the listener xApp via RMR transmission medium
+And dialer xApp connected to RMR transmission medium successfully
+And listener xApp connected to RMR transmission medium successfully
+When dialer xApp sends a message to the listener xApp via transmission medium
 Then the listener xApp receive the message
 ```
 
