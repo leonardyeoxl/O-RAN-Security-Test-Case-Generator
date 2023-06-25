@@ -3,6 +3,21 @@
         "cwe_id": "CWE-311",
         "type": "Missing Encryption of Sensitive Data",
         "description": "The product does not encrypt sensitive or critical information before storage or transmission. The lack of proper data encryption passes up the guarantees of confidentiality, integrity, and accountability that properly implemented encryption conveys.",
+        "child_relation_to": [],
+        "parent_relation_to": ["CWE-319"],
+        "tags": [
+            "Encryption",
+            "Encrypt",
+            "Sensitive Data",
+            "Data Encryption"
+        ]
+    },
+    "CWE-319": {
+        "cwe_id": "CWE-319",
+        "type": "Cleartext Transmission of Sensitive Information",
+        "description": "Many communication channels can be \"sniffed\" (monitored) by adversaries during data transmission. For example, in networking, packets can traverse many intermediary nodes from the source to the destination, whether across the internet, an internal network, the cloud, etc. Some actors might have privileged access to a network interface or any link along the channel, such as a router, but they might not be authorized to collect the underlying data. As a result, network traffic could be sniffed by adversaries, spilling security-critical data. Applicable communication channels are not limited to software products. Applicable channels include hardware-specific technologies such as internal hardware networks and external debug channels, supporting remote JTAG debugging. When mitigations are not applied to combat adversaries within the product's threat model, this weakness significantly lowers the difficulty of exploitation by such adversaries. When full communications are recorded or logged, such as with a packet dump, an adversary could attempt to obtain the dump long after the transmission has occurred and try to \"sniff\" the cleartext from the recorded communications in the dump itself.",
+        "child_relation_to": ["CWE-311"],
+        "parent_relation_to": [],
         "tags": [
             "Encryption",
             "Encrypt",

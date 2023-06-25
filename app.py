@@ -7,8 +7,6 @@ import spacy
 from spacy import displacy
 import nltk
 from nltk.tokenize import TreebankWordTokenizer as twt
-import spacy_transformers
-import en_core_web_trf
 
 nltk.download("averaged_perceptron_tagger")
 nltk.download("universal_tagset")
@@ -43,7 +41,6 @@ def gen_ents(text):
             ents.append({"start": span[0], "end": span[1], "label": tag[1]})
 
     return ents
-
 
 def visualize_pos(text):
     ents = gen_ents(text)
@@ -271,7 +268,7 @@ def find_oran_security_analysis_related_attacks(data_assets, near_rt_ric_assets)
     
     return related_attacks
 
-def find_weaknesses_and_countermeasures(found_CAPEC_attacks):
+def find_weaknesses_and_countermeasures(found_CAPEC_attacks, data_assets, near_rt_ric_assets):
     CWEs_matched = set()
     ASVSs_matched = set()
     for found_CAPEC_attack in found_CAPEC_attacks:
@@ -281,6 +278,22 @@ def find_weaknesses_and_countermeasures(found_CAPEC_attacks):
                 for related_weakness in related_weaknesses:
                     if CWE[related_weakness]:
                         CWEs_matched.add(related_weakness)
+
+    parent_child_matched_CWEs = set()
+    # find related CWEs by matched CWEs
+    for CWE_matched in CWEs_matched:
+        if CWE[CWE_matched]:
+            parents_relation_to = CWE[CWE_matched]["parent_relation_to"]
+            for parent in parents_relation_to:
+                if CWE[parent]:
+                    parent_child_matched_CWEs.add(parent)
+            
+            children_relation_to = CWE[CWE_matched]["child_relation_to"]
+            for child in children_relation_to:
+                if CWE[child]:
+                    parent_child_matched_CWEs.add(child)
+
+    CWEs_matched = CWEs_matched.union(parent_child_matched_CWEs)
 
     for CWE_matched in CWEs_matched:
         for ASVS_item_key, ASVS_item_val in ASVS.items():
@@ -462,8 +475,12 @@ def cs_body():
 
 
             st.header("3. Construct Misuse Case Scenario")
-            CWEs_matched, ASVSs_matched = find_weaknesses_and_countermeasures(capec_related_attacks)
-            st.subheader("CWE Countermeasures")
+            CWEs_matched, ASVSs_matched = find_weaknesses_and_countermeasures(
+                capec_related_attacks,
+                data_assets,
+                near_rt_ric_assets
+            )
+            st.subheader("CWE")
             if CWEs_matched:
                 for CWE_matched in CWEs_matched:
                     CWE_id = CWE[CWE_matched]["cwe_id"]
@@ -474,7 +491,7 @@ def cs_body():
                     st.write(f"Description: {CWE_description}\n")
                     st.write("")
             else:
-                st.write("CWE Countermeasures not found")
+                st.write("CWE not found")
 
             st.subheader("ASVS Countermeasures")
             if ASVSs_matched:
