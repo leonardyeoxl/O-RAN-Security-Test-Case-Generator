@@ -23,6 +23,7 @@ CWE = []
 ORAN_COMPONENTS = []
 ORAN_NEAR_RT_RIC = []
 ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS = []
+MCS = []
 
 
 def gen_ents(text):
@@ -68,7 +69,6 @@ def visualize_pos(text):
         doc, style="ent", jupyter=False, options=options, manual=True
     )
 
-
 def gen_ent_with_word(ents, text):
     for ent in ents:
         start = ent["start"]
@@ -93,7 +93,6 @@ def concat_nouns(ents):
         left += 1
 
     return nouns
-
 
 def concat_verbs(ents):
     verbs = []
@@ -123,7 +122,6 @@ def select_outcome(texts):
 
     return index, texts[index:]
 
-
 def select_sequence(texts, outcome_index):
     index = 0
     for i in range(len(texts)):
@@ -132,7 +130,6 @@ def select_sequence(texts, outcome_index):
             break
 
     return texts[index:outcome_index]
-
 
 def select_data_asset(ents):
     nouns = concat_nouns(ents)
@@ -150,8 +147,6 @@ def select_near_rt_ric_asset(ents):
         if noun.strip().upper() in NEAR_RT_RIC_ASSETS
     ]
 
-
-
 def ucs_graph(graph):
     components.v1.html(
         f"""
@@ -168,7 +163,7 @@ def ucs_graph(graph):
         height=350,
     )
 
-def related_attacks(data_assets, near_rt_ric_assets):
+def find_capec_related_attacks(data_assets, near_rt_ric_assets):
     related_attacks = set()
     for capec_key, capec_val in CAPEC.items():
         tags = [tag.lower() for tag in capec_val["tags"]]
@@ -193,15 +188,110 @@ def related_attacks(data_assets, near_rt_ric_assets):
                 if child in CAPEC.keys():
                     text += f"{related_attack}({related_attack}:{CAPEC[related_attack]['type']}) --> {child}({child}: {CAPEC[child]['type']})\n"
 
-    ucs_graph(
-        f"""
-        graph LR
-        {text}
-        """
-    )
+    if text:
+        ucs_graph(
+            f"""
+            graph LR
+            {text}
+            """
+        )
+
+    return related_attacks
+
+def find_oran_components_related_attacks(data_assets, near_rt_ric_assets):
+    related_attacks = set()
+    for oran_component in ORAN_COMPONENTS:
+        tags = [tag.lower() for tag in oran_component["tags"]]
+        for data_asset in data_assets:
+            if data_asset in tags:
+                related_attacks.add(oran_component["threat_id"])
+        for near_rt_ric_asset in near_rt_ric_assets:
+            if near_rt_ric_asset in tags:
+                related_attacks.add(oran_component["threat_id"])
+
+    text = ""
+    if text:
+        ucs_graph(
+            f"""
+            graph LR
+            {text}
+            """
+        )
+    
+    return related_attacks
+
+def find_oran_near_rt_ric_related_attacks(data_assets, near_rt_ric_assets):
+    related_attacks = set()
+    for oran_near_rt_ric_key, oran_near_rt_ric_val in ORAN_NEAR_RT_RIC.items():
+        tags = [tag.lower() for tag in oran_near_rt_ric_val["tags"]]
+        for data_asset in data_assets:
+            if data_asset in tags:
+                related_attacks.add(oran_near_rt_ric_key)
+        for near_rt_ric_asset in near_rt_ric_assets:
+            if near_rt_ric_asset in tags:
+                related_attacks.add(oran_near_rt_ric_key)
+
+    text = ""
+    if text:
+        ucs_graph(
+            f"""
+            graph LR
+            {text}
+            """
+        )
+    
+    return related_attacks
+
+def find_oran_security_analysis_related_attacks(data_assets, near_rt_ric_assets):
+    related_attacks = set()
+    for oran_security_analysis_key, oran_security_analysis_val in ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS.items():
+        tags = [tag.lower() for tag in oran_security_analysis_val["tags"]]
+        for data_asset in data_assets:
+            if data_asset in tags:
+                related_attacks.add(oran_security_analysis_key)
+        for near_rt_ric_asset in near_rt_ric_assets:
+            if near_rt_ric_asset in tags:
+                related_attacks.add(oran_security_analysis_key)
+
+    text = ""
+    for related_attack in related_attacks:
+        threat_ids = ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_attack]['key_issue_relation']
+        if len(key_issue_relations) > 0:
+            for threat_id in threat_ids:
+                if threat_id in ORAN_NEAR_RT_RIC.keys():
+                    text += f"{related_attack}({related_attack}) --> {threat_id}({threat_id}: {ORAN_NEAR_RT_RIC[threat_id]['threat_title']})\n"
+
+    if text:
+        ucs_graph(
+            f"""
+            graph LR
+            {text}
+            """
+        )
+    
+    return related_attacks
+
+def find_weaknesses_and_countermeasures(found_CAPEC_attacks):
+    CWEs_matched = set()
+    ASVSs_matched = set()
+    for found_CAPEC_attack in found_CAPEC_attacks:
+        if CAPEC[found_CAPEC_attack]:
+            related_weaknesses = CAPEC[found_CAPEC_attack]["related_weaknesses"]
+            if related_weaknesses:
+                for related_weakness in related_weaknesses:
+                    if CWE[related_weakness]:
+                        CWEs_matched.add(related_weakness)
+
+    for CWE_matched in CWEs_matched:
+        for ASVS_item_key, ASVS_item_val in ASVS.items():
+            if CWE_matched in ASVS_item_val["related_cwe_ids"]:
+                ASVSs_matched.add(ASVS_item_key)
+
+    return CWEs_matched, ASVSs_matched
 
 def gen_prompt(
     use_case_scenario,
+    use_case_scenario_title,
     CAPEC,
     CWE,
     SWG_O_RAN_Components_Threat_Model,
@@ -211,6 +301,7 @@ def gen_prompt(
 ):
     NONE = "None"
     prompt = "You are a cyber security testing expert. You are familiar with writing security test cases. Also, you are familiar with CAPEC, CWE and SWG O-RAN Security.\n\n"
+    prompt += f"Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
     prompt += f"Use Case Scenario in Gherkin language syntax,\n{use_case_scenario}\n\n"
     prompt += f"CAPEC,\n{CAPEC}\n\n"
     prompt += f"CWEs,\n{CWE}\n\n"
@@ -245,7 +336,7 @@ def cs_sidebar():
     return None
 
 def read_data():
-    global ASVS, CAPEC, CWE, ORAN_COMPONENTS, ORAN_NEAR_RT_RIC, ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS
+    global ASVS, CAPEC, CWE, ORAN_COMPONENTS, ORAN_NEAR_RT_RIC, ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS, MCS
 
     with open('./data/asvs.json', "r") as asvs_file:
         ASVS = json.load(asvs_file)
@@ -265,9 +356,12 @@ def read_data():
     with open('./data/oran-security-analysis.json', "r") as oran_security_analysis_file:
         ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS = json.load(oran_security_analysis_file)
 
+    with open('./data/misuse-case-scenario-examples.json', "r") as mcs_examples_file:
+        MCS = json.load(mcs_examples_file)
+
 def cs_body():
     with st.container():
-        st.header("Build Use Case Scenario Model")
+        st.header("1. Build Use Case Scenario Model")
 
         st.subheader("Step 1: Input Use Case Scenario")
         st.text_input(
@@ -314,6 +408,8 @@ def cs_body():
             selected_seqs = st.multiselect("Step 3.3: Select Sequences", sequences)
 
             selected_seqs_graph = ""
+            data_assets = []
+            near_rt_ric_assets = []
             for index in range(len(selected_seqs)):
                 seq_text = selected_seqs[index]
                 seq_ents = gen_ents(seq_text)
@@ -338,20 +434,94 @@ def cs_body():
                 """
             )
 
-            st.header("Find Related Attacks")
-            if selected_seqs:
-                for index in range(len(selected_seqs)):
-                    seq_text = selected_seqs[index]
-                    seq_ents = gen_ents(seq_text)
-                    gen_ent_with_word(seq_ents, seq_text)
-                    actions = concat_verbs(seq_ents)
-                    data_assets = select_data_asset(seq_ents)
-                    near_rt_ric_assets = select_near_rt_ric_asset(seq_ents)
-                    related_attacks(data_assets, near_rt_ric_assets)
+            st.header("2. Find Related Attacks")
+            capec_related_attacks = set()
+            oran_components_related_attacks = set()
+            oran_near_rt_ric_related_attacks = set()
+            oran_security_analysis_related_attacks = set()
+            capec_related_attacks = find_capec_related_attacks(data_assets, near_rt_ric_assets)
+            oran_components_related_attacks = find_oran_components_related_attacks(data_assets, near_rt_ric_assets)
+            oran_near_rt_ric_related_attacks = find_oran_near_rt_ric_related_attacks(data_assets, near_rt_ric_assets)
+            oran_security_analysis_related_attacks = find_oran_security_analysis_related_attacks(data_assets, near_rt_ric_assets)
 
-            st.header("Construct Misuse Case Scenario")
-            st.subheader("Countermeasures")
+            st.subheader("CAPEC Related Attacks")
+            for capec_related_attack in capec_related_attacks:
+                st.write(capec_related_attack)
+
+            st.subheader("O-RAN Components Related Attacks")
+            for oran_components_related_attack in oran_components_related_attacks:
+                st.write(oran_components_related_attack)
+
+            st.subheader("O-RAN Near-RT RIC Related Attacks")
+            for oran_near_rt_ric_related_attack in oran_near_rt_ric_related_attacks:
+                st.write(oran_near_rt_ric_related_attack)
+
+            st.subheader("O-RAN Security Analysis on Near-RT RIC and xApps Related Attacks")
+            for oran_security_analysis_related_attack in oran_security_analysis_related_attacks:
+                st.write(oran_security_analysis_related_attack)
+
+
+            st.header("3. Construct Misuse Case Scenario")
+            CWEs_matched, ASVSs_matched = find_weaknesses_and_countermeasures(capec_related_attacks)
+            st.subheader("CWE Countermeasures")
+            if CWEs_matched:
+                for CWE_matched in CWEs_matched:
+                    CWE_id = CWE[CWE_matched]["cwe_id"]
+                    CWE_type = CWE[CWE_matched]["type"]
+                    CWE_description = CWE[CWE_matched]["description"]
+                    st.write(f"ID: {CWE_id}")
+                    st.write(f"Type: {CWE_type}")
+                    st.write(f"Description: {CWE_description}\n")
+                    st.write("")
+            else:
+                st.write("CWE Countermeasures not found")
+
+            st.subheader("ASVS Countermeasures")
+            if ASVSs_matched:
+                for ASVS_matched in ASVSs_matched:
+                    ASVS_id = ASVS[ASVS_matched]["asvs_id"]
+                    ASVS_type = ASVS[ASVS_matched]["type"]
+                    ASVS_description = ASVS[ASVS_matched]["description"]
+                    st.write(f"ID: {ASVS_id}")
+                    st.write(f"Type: {ASVS_type}")
+                    st.write(f"Description: {ASVS_description}\n")
+                    st.write("")
+            else:
+                st.write("ASVS Countermeasures not found")
+
+            st.subheader("O-RAN Near-RT RIC Countermeasures")
+
+            st.subheader("O-RAN Near-RT RIC xApp Countermeasures")
+
             st.subheader("Suggested Prompt Design")
+            CAPEC_prompt = ""
+            for capec_related_attack in capec_related_attacks:
+                CAPEC_type = CAPEC[capec_related_attack]["type"]
+                CAPEC_description = CAPEC[capec_related_attack]["description"]
+                CAPEC_prompt += f"{capec_related_attack}: {CAPEC_type}. {CAPEC_description}\n"
+
+            CWE_prompt = ""
+            for CWE_matched in CWEs_matched:
+                CWE_id = CWE[CWE_matched]["cwe_id"]
+                CWE_type = CWE[CWE_matched]["type"]
+                CWE_description = CWE[CWE_matched]["description"]
+                CWE_prompt += f"{CWE_id}: {CWE_type}. {CWE_description}\n"
+
+            Examples_Misuse_Case_Scenario = ""
+            for scenario in MCS:
+                Examples_Misuse_Case_Scenario += scenario
+
+            prompt = gen_prompt(
+                st.session_state.ucs,
+                st.session_state.ucstitle,
+                CAPEC_prompt,
+                CWE_prompt,
+                oran_components_related_attacks,
+                oran_near_rt_ric_related_attacks,
+                oran_security_analysis_related_attacks,
+                Examples_Misuse_Case_Scenario,
+            )
+            st.text_area(label="prompt_design", height=850, value=prompt, disabled=True)
 
 
 def main():
