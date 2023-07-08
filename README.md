@@ -7,6 +7,7 @@
 - `pipenv install spacy`
 - `pipenv install ntlk`
 - `pipenv install IPython`
+- `pipenv install openai`
 
 ## Run
 - `pipenv shell`
@@ -22,6 +23,27 @@ And dialer xApp connected to RMR transmission medium successfully
 And listener xApp connected to RMR transmission medium successfully
 When dialer xApp sends a message to the listener xApp via transmission medium
 Then the listener xApp receive the message
+```
+
+### Example Use Case Scenario Title
+`Login`
+### Example Use Case Scenario
+```
+Given these users have been created with default attributes and without skeleton files
+When user Alice logs in using the webUI
+Then the user should be redirected to a webUI page with the title Files-%productname%
+```
+
+### Example Use Case Scenario Title
+`Change Email Address`
+### Example Use Case Scenario
+```
+Given user Alice has been created with default attributes and without skeleton files
+And user Alice has logged in use the webUI
+And the user has browsed to the personal general settings page
+When the user changes the email address to new-address@owncloud.com user the webUI
+And the user follows the email change confirmation link received by new-address@owncloud.com using the webUI
+Then the attributes of user Alice returned by the API should include | email | new-address@owncloud.com
 ```
 
 ## Prompt design to generate tags for capec.json

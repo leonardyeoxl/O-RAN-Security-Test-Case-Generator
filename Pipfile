@@ -10,6 +10,8 @@ spacy-transformers = "*"
 setuptools = "*"
 nltk = "*"
 ipython = "*"
+openai = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

@@ -7,6 +7,13 @@ import spacy
 from spacy import displacy
 import nltk
 from nltk.tokenize import TreebankWordTokenizer as twt
+import openai
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # take environment variables from .env.
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 nltk.download("averaged_perceptron_tagger")
 nltk.download("universal_tagset")
@@ -157,7 +164,23 @@ def ucs_graph(graph):
         </script>
         """,
         scrolling=True,
-        height=350,
+        height=450,
+    )
+
+def capec_related_attacks_graph(graph):
+    components.v1.html(
+        f"""
+        <pre class="mermaid">
+            {graph}
+        </pre>
+
+        <script type="module">
+            import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+            mermaid.initialize({{ startOnLoad: true }});
+        </script>
+        """,
+        scrolling=True,
+        height=150,
     )
 
 def find_capec_related_attacks(data_assets, near_rt_ric_assets):
@@ -186,7 +209,7 @@ def find_capec_related_attacks(data_assets, near_rt_ric_assets):
                     text += f"{related_attack}({related_attack}:{CAPEC[related_attack]['type']}) --> {child}({child}: {CAPEC[child]['type']})\n"
 
     if text:
-        ucs_graph(
+        capec_related_attacks_graph(
             f"""
             graph LR
             {text}
@@ -313,17 +336,17 @@ def gen_prompt(
     Examples_Misuse_Case_Scenario,
 ):
     NONE = "None"
-    prompt = "You are a cyber security testing expert. You are familiar with writing security test cases. Also, you are familiar with CAPEC, CWE and SWG O-RAN Security.\n\n"
-    prompt += f"Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
-    prompt += f"Use Case Scenario in Gherkin language syntax,\n{use_case_scenario}\n\n"
-    prompt += f"CAPEC,\n{CAPEC}\n\n"
-    prompt += f"CWEs,\n{CWE}\n\n"
-    prompt += f"SWG O-RAN Components Threat Model,\n{SWG_O_RAN_Components_Threat_Model if SWG_O_RAN_Components_Threat_Model else NONE}\n\n"
-    prompt += f"SWG O-RAN Near-RT RIC Component Threat Model,\n{SWG_O_RAN_Near_RT_RIC_Components_Threat_Model if SWG_O_RAN_Near_RT_RIC_Components_Threat_Model else NONE}\n\n"
-    prompt += f"SWG Security Analysis for Near-RT RIC and xApps,\n{SWG_Security_Analysis_for_Near_RT_RIC_and_xApps if SWG_Security_Analysis_for_Near_RT_RIC_and_xApps else NONE}\n\n"
-    prompt += f"Examples of Misuse Case Scenario in Gherkin language syntax,\n{Examples_Misuse_Case_Scenario if Examples_Misuse_Case_Scenario else NONE}\n\n"
-    prompt += f"Construct a Misuse Case Scenario in Gherkin language syntax from above Use Case Scenario, CAPEC, CWEs, SWG O-RAN Components Threat Model (if not none), SWG O-RAN Near-RT RIC Component Threat Model (if not none) and SWG Security Analysis for Near-RT RIC and xApps (if not none)."
-    return prompt
+    system = "You are a cyber security testing expert. You are familiar with writing security test cases. Also, you are familiar with CAPEC, CWE and SWG O-RAN Security.\n\n"
+    system += f"Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
+    system += f"Use Case Scenario in Gherkin language syntax,\n{use_case_scenario}\n\n"
+    system += f"CAPEC,\n{CAPEC}\n\n"
+    system += f"CWEs,\n{CWE}\n\n"
+    system += f"SWG O-RAN Components Threat Model,\n{SWG_O_RAN_Components_Threat_Model if SWG_O_RAN_Components_Threat_Model else NONE}\n\n"
+    system += f"SWG O-RAN Near-RT RIC Component Threat Model,\n{SWG_O_RAN_Near_RT_RIC_Components_Threat_Model if SWG_O_RAN_Near_RT_RIC_Components_Threat_Model else NONE}\n\n"
+    system += f"SWG Security Analysis for Near-RT RIC and xApps,\n{SWG_Security_Analysis_for_Near_RT_RIC_and_xApps if SWG_Security_Analysis_for_Near_RT_RIC_and_xApps else NONE}\n\n"
+    system += f"Examples of Misuse Case Scenario in Gherkin language syntax,\n{Examples_Misuse_Case_Scenario if Examples_Misuse_Case_Scenario else NONE}\n\n"
+    user = f"Construct a Misuse Case Scenario in Gherkin language syntax from above Use Case Scenario, CAPEC, CWEs, SWG O-RAN Components Threat Model (if not none), SWG O-RAN Near-RT RIC Component Threat Model (if not none) and SWG Security Analysis for Near-RT RIC and xApps (if not none)."
+    return system, user, system+user
 
 
 # Initial page config
@@ -438,7 +461,7 @@ def cs_body():
 
             ucs_graph(
                 f"""
-                graph LR
+                graph TD
                     A({st.session_state.ucstitle})
                     A --> B(Subject: {subject})
                     A --> C(Outcome: {outcome})
@@ -458,20 +481,32 @@ def cs_body():
             oran_security_analysis_related_attacks = find_oran_security_analysis_related_attacks(data_assets, near_rt_ric_assets)
 
             st.subheader("CAPEC Related Attacks")
-            for capec_related_attack in capec_related_attacks:
-                st.write(capec_related_attack)
+            if capec_related_attacks:
+                for capec_related_attack in capec_related_attacks:
+                    st.write(capec_related_attack)
+            else:
+                st.write("There are no CAPEC Related Attacks found.")
 
             st.subheader("O-RAN Components Related Attacks")
-            for oran_components_related_attack in oran_components_related_attacks:
-                st.write(oran_components_related_attack)
+            if oran_components_related_attacks:
+                for oran_components_related_attack in oran_components_related_attacks:
+                    st.write(oran_components_related_attack)
+            else:
+                st.write("There are no O-RAN Components Related Attacks found.")
 
             st.subheader("O-RAN Near-RT RIC Related Attacks")
-            for oran_near_rt_ric_related_attack in oran_near_rt_ric_related_attacks:
-                st.write(oran_near_rt_ric_related_attack)
+            if oran_near_rt_ric_related_attacks:
+                for oran_near_rt_ric_related_attack in oran_near_rt_ric_related_attacks:
+                    st.write(oran_near_rt_ric_related_attack)
+            else:
+                st.write("There are no O-RAN Near-RT RIC Related Attacks found.")
 
             st.subheader("O-RAN Security Analysis on Near-RT RIC and xApps Related Attacks")
-            for oran_security_analysis_related_attack in oran_security_analysis_related_attacks:
-                st.write(oran_security_analysis_related_attack)
+            if oran_security_analysis_related_attacks:
+                for oran_security_analysis_related_attack in oran_security_analysis_related_attacks:
+                    st.write(oran_security_analysis_related_attack)
+            else:
+                st.write("There are no O-RAN Security Analysis on Near-RT RIC and xApps Related Attacks found.")
 
 
             st.header("3. Construct Misuse Case Scenario")
@@ -507,8 +542,10 @@ def cs_body():
                 st.write("ASVS Countermeasures not found")
 
             st.subheader("O-RAN Near-RT RIC Countermeasures")
+            st.write("There are no O-RAN Near-RT RIC Countermeasures found.")
 
             st.subheader("O-RAN Near-RT RIC xApp Countermeasures")
+            st.write("There are no O-RAN Near-RT RIC xApp Countermeasures found.")
 
             st.subheader("Suggested Prompt Design")
             CAPEC_prompt = ""
@@ -528,7 +565,7 @@ def cs_body():
             for scenario in MCS:
                 Examples_Misuse_Case_Scenario += scenario
 
-            prompt = gen_prompt(
+            system, user, prompt = gen_prompt(
                 st.session_state.ucs,
                 st.session_state.ucstitle,
                 CAPEC_prompt,
@@ -539,6 +576,16 @@ def cs_body():
                 Examples_Misuse_Case_Scenario,
             )
             st.text_area(label="prompt_design", height=850, value=prompt, disabled=True)
+
+            completion = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user}
+                ]
+            )
+
+            st.text_area(label="gpt_completion", height=850, value=completion.choices[0].message, disabled=True)
 
 
 def main():
