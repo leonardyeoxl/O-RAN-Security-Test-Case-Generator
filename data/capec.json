@@ -51,5 +51,85 @@
             "Network security",
             "Transmission Medium"
         ]
+    },
+    "CAPEC-87": {
+        "capec_id": "CAPEC-87",
+        "type": "Forceful Browsing",
+        "description": "An attacker employs forceful browsing (direct URL entry) to access portions of a website that are otherwise unreachable. Usually, a front controller or similar design pattern is employed to protect access to portions of a web application. Forceful browsing enables an attacker to access information, perform privileged operations and otherwise reach sections of the web application that have been improperly protected.",
+        "mitigations": "Authenticate request to every resource. In addition, every page or resource must ensure that the request it is handling has been made in an authorized context. Forceful browsing can also be made difficult to a large extent by not hard-coding names of application pages or resources. This way, the attacker cannot figure out, from the application alone, the resources available from the present context.",
+        "child_relation": ["CAPEC-115"],
+        "parent_relation": [],
+        "related_weaknesses": ["CWE-425", "CWE-285", "CWE-693"],
+        "tags": [
+            "Forceful Browsing",
+            "Direct URL entry",
+            "Unauthorized access",
+            "Web application vulnerability",
+            "Web resource exploitation",
+            "Front controller bypass",
+            "Privilege escalation",
+            "Improper access protection",
+            "Authentication",
+            "Access control",
+            "Context-based authorization",
+            "Request validation",
+            "Web security",
+            "Web application security",
+            "Authorization vulnerability",
+            "URL manipulation"
+        ]
+    },
+    "CAPEC-153": {
+        "capec_id": "CAPEC-153",
+        "type": "Input Data Manipulation",
+        "description": "An attacker exploits a weakness in input validation by controlling the format, structure, and composition of data to an input-processing interface. By supplying input of a non-standard or unexpected form an attacker can adversely impact the security of the target. For example, using a different character encoding might cause dangerous text to be treated as safe text. Alternatively, the attacker may use certain flags, such as file extensions, to make a target application believe that provided data should be handled using a certain interpreter when the data is not actually of the appropriate type. This can lead to bypassing protection mechanisms, forcing the target to use specific components for input processing, or otherwise causing the user's data to be handled differently than might otherwise be expected. This attack differs from Variable Manipulation in that Variable Manipulation attempts to subvert the target's processing through the value of the input while Input Data Manipulation seeks to control how the input is processed.",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": ["CAPEC-126", "CAPEC-128", "CAPEC-267"],
+        "related_weaknesses": ["CWE-20"],
+        "tags": [
+            "Input Data Manipulation",
+            "Input validation",
+            "Data format manipulation",
+            "Data structure manipulation",
+            "Data composition manipulation",
+            "Input processing vulnerability",
+            "Character encoding manipulation",
+            "File extension manipulation",
+            "Protection mechanism bypass",
+            "Security impact",
+            "Data handling",
+            "Input manipulation techniques",
+            "Input security",
+            "Vulnerability exploitation",
+            "Input processing control"
+        ]
+    },
+    "CAPEC-128": {
+        "capec_id": "CAPEC-128",
+        "type": "Integer Attacks",
+        "description": "An attacker takes advantage of the structure of integer variables to cause these variables to assume values that are not expected by an application. For example, adding one to the largest positive integer in a signed integer variable results in a negative number. Negative numbers may be illegal in an application and the application may prevent an attacker from providing them directly, but the application may not consider that adding two positive numbers can create a negative number do to the structure of integer storage formats.",
+        "mitigations": "",
+        "child_relation": ["CAPEC-153"],
+        "parent_relation": ["CAPEC-92"],
+        "related_weaknesses": ["CWE-682"],
+        "tags": [
+            "Integer Attacks",
+            "Integer manipulation",
+            "Integer variable exploitation",
+            "Integer overflow",
+            "Integer underflow",
+            "Integer boundary manipulation",
+            "Signed integer vulnerability",
+            "Integer storage format",
+            "Unexpected integer values",
+            "Arithmetic operations",
+            "Number representation",
+            "Application behavior",
+            "Integer security",
+            "Vulnerability exploitation",
+            "Numeric manipulation",
+            "Integer-based attacks"
+        ]
     }
 }

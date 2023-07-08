@@ -27,5 +27,86 @@
             "Communication",
             "Communications"
         ]
+    },
+    "5.1.3": {
+        "asvs_id": "5.1.3",
+        "type": "Input Validation Requirements",
+        "description": "Verify that all input (HTML form fields, REST requests, URL parameters, HTTP headers, cookies, batch files, RSS feeds, etc) is validated using positive validation (whitelisting)",
+        "related_cwe_ids": ["CWE-20"],
+        "tags": [
+            "input validation",
+            "input sanitization",
+            "input filtering",
+            "whitelisting",
+            "positive validation",
+            "HTML form validation",
+            "REST request validation",
+            "URL parameter validation",
+            "HTTP header validation",
+            "cookie validation",
+            "batch file validation",
+            "RSS feed validation"
+        ]  
+    },
+    "5.2.3": {
+        "asvs_id": "5.2.3",
+        "type": "Sanitization and Sandboxing Requirements",
+        "description": "Verify that the application sanitizes user input before passing to mail systems to protect against SMTP or IMAP injection.",
+        "related_cwe_ids": ["CWE-147"],
+        "tags": [
+            "user input sanitization",
+            "input validation",
+            "SMTP injection",
+            "IMAP injection",
+            "mail system security",
+            "email injection",
+            "sanitizing user input",
+            "SMTP security",
+            "IMAP security",
+            "email security"
+        ]  
+    },
+    "4.1.3": {
+        "asvs_id": "4.1.3",
+        "type": "General Access Control Design",
+        "description": "Verify that the principle of least privilege exists - users should only be able to access functions, data files, URLs, controllers, services, and other resources, for which they possess specific authorization. This implies protection against spoofing and elevation of privilege",
+        "related_cwe_ids": ["CWE-285"],
+        "tags": [
+            "principle of least privilege",
+            "access control",
+            "user authorization",
+            "authentication and authorization",
+            "authorization levels",
+            "user permissions",
+            "resource access control",
+            "spoofing protection",
+            "elevation of privilege protection",
+            "privileged access",
+            "user privilege management"
+        ]  
+    },
+    "13.1.4": {
+        "asvs_id": "13.1.4",
+        "type": "Generic Web Service Security Verification Requirements",
+        "description": "Verify that authorization decisions are made at both the URI, enforced by programmatic or declarative security at the controller or router, and at the resource level, enforced by model-based permissions.",
+        "related_cwe_ids": ["CWE-285"],
+        "tags": [
+            "authorization decisions",
+            "URI-based authorization",
+            "programmatic security",
+            "declarative security",
+            "controller-based authorization",
+            "router-based authorization",
+            "resource-based authorization",
+            "model-based permissions",
+            "access control",
+            "role-based access control",
+            "RBAC",
+            "attribute-based access control",
+            "ABAC",
+            "authorization enforcement",
+            "URI-level authorization",
+            "resource-level authorization"
+        ]  
     }
 }
