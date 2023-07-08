@@ -8,6 +8,7 @@
 - `pipenv install ntlk`
 - `pipenv install IPython`
 - `pipenv install openai`
+- copy the `.env.template` file and rename to `.env`, apply for OpenAI API key and add the OpenAI API key to `OPENAI_API_KEY`
 
 ## Run
 - `pipenv shell`
