@@ -183,10 +183,13 @@ def capec_related_attacks_graph(graph):
         height=150,
     )
 
-def find_capec_related_attacks(data_assets, near_rt_ric_assets):
+def find_capec_related_attacks(data_assets, near_rt_ric_assets, actions):
     related_attacks = set()
     for capec_key, capec_val in CAPEC.items():
         tags = [tag.lower() for tag in capec_val["tags"]]
+        for action in actions:
+            if action in tags:
+                related_attacks.add(capec_key)
         for data_asset in data_assets:
             if data_asset in tags:
                 related_attacks.add(capec_key)
@@ -218,10 +221,13 @@ def find_capec_related_attacks(data_assets, near_rt_ric_assets):
 
     return related_attacks
 
-def find_oran_components_related_attacks(data_assets, near_rt_ric_assets):
+def find_oran_components_related_attacks(data_assets, near_rt_ric_assets, actions):
     related_attacks = set()
     for oran_component in ORAN_COMPONENTS:
         tags = [tag.lower() for tag in oran_component["tags"]]
+        for action in actions:
+            if action in tags:
+                related_attacks.add(oran_component["threat_id"])
         for data_asset in data_assets:
             if data_asset in tags:
                 related_attacks.add(oran_component["threat_id"])
@@ -240,10 +246,13 @@ def find_oran_components_related_attacks(data_assets, near_rt_ric_assets):
     
     return related_attacks
 
-def find_oran_near_rt_ric_related_attacks(data_assets, near_rt_ric_assets):
+def find_oran_near_rt_ric_related_attacks(data_assets, near_rt_ric_assets, actions):
     related_attacks = set()
     for oran_near_rt_ric_key, oran_near_rt_ric_val in ORAN_NEAR_RT_RIC.items():
         tags = [tag.lower() for tag in oran_near_rt_ric_val["tags"]]
+        for action in actions:
+            if action in tags:
+                related_attacks.add(oran_near_rt_ric_key)
         for data_asset in data_assets:
             if data_asset in tags:
                 related_attacks.add(oran_near_rt_ric_key)
@@ -262,10 +271,13 @@ def find_oran_near_rt_ric_related_attacks(data_assets, near_rt_ric_assets):
     
     return related_attacks
 
-def find_oran_security_analysis_related_attacks(data_assets, near_rt_ric_assets):
+def find_oran_security_analysis_related_attacks(data_assets, near_rt_ric_assets, actions):
     related_attacks = set()
     for oran_security_analysis_key, oran_security_analysis_val in ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS.items():
         tags = [tag.lower() for tag in oran_security_analysis_val["tags"]]
+        for action in actions:
+            if action in tags:
+                related_attacks.add(oran_security_analysis_key)
         for data_asset in data_assets:
             if data_asset in tags:
                 related_attacks.add(oran_security_analysis_key)
@@ -446,6 +458,7 @@ def cs_body():
             selected_seqs_graph = ""
             data_assets = []
             near_rt_ric_assets = []
+            actions = []
             for index in range(len(selected_seqs)):
                 seq_text = selected_seqs[index]
                 seq_ents = gen_ents(seq_text)
@@ -457,7 +470,7 @@ def cs_body():
                 selected_seqs_graph += (
                     f"E{index} --> F{index}(Data Assets: {','.join(data_assets)})\n"
                 )
-                selected_seqs_graph += f"F{index} --> G{index}(Near-RT RIC Assets: {','.join(near_rt_ric_assets)})\n"
+                selected_seqs_graph += f"F{index} --> G{index}(O-RAN Assets: {','.join(near_rt_ric_assets)})\n"
 
             ucs_graph(
                 f"""
@@ -475,10 +488,10 @@ def cs_body():
             oran_components_related_attacks = set()
             oran_near_rt_ric_related_attacks = set()
             oran_security_analysis_related_attacks = set()
-            capec_related_attacks = find_capec_related_attacks(data_assets, near_rt_ric_assets)
-            oran_components_related_attacks = find_oran_components_related_attacks(data_assets, near_rt_ric_assets)
-            oran_near_rt_ric_related_attacks = find_oran_near_rt_ric_related_attacks(data_assets, near_rt_ric_assets)
-            oran_security_analysis_related_attacks = find_oran_security_analysis_related_attacks(data_assets, near_rt_ric_assets)
+            capec_related_attacks = find_capec_related_attacks(data_assets, near_rt_ric_assets, actions)
+            oran_components_related_attacks = find_oran_components_related_attacks(data_assets, near_rt_ric_assets, actions)
+            oran_near_rt_ric_related_attacks = find_oran_near_rt_ric_related_attacks(data_assets, near_rt_ric_assets, actions)
+            oran_security_analysis_related_attacks = find_oran_security_analysis_related_attacks(data_assets, near_rt_ric_assets, actions)
 
             st.subheader("CAPEC Related Attacks")
             if capec_related_attacks:

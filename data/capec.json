@@ -49,7 +49,8 @@
             "Insecure mediums",
             "Information leakage",
             "Network security",
-            "Transmission Medium"
+            "Transmission Medium",
+            "Sends"
         ]
     },
     "CAPEC-87": {
