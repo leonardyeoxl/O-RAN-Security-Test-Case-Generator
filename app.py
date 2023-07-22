@@ -13,7 +13,7 @@ import os
 
 load_dotenv()  # take environment variables from .env.
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = st.secrets['api_key']
 
 nltk.download("averaged_perceptron_tagger")
 nltk.download("universal_tagset")
@@ -221,6 +221,54 @@ def find_capec_related_attacks(data_assets, near_rt_ric_assets, actions):
 
     return related_attacks
 
+def find_capec_related_attacks_llm(use_case_scenario_title, use_case_scenario_description, capec_attack_patterns):
+    related_attacks = set()
+
+    system = "You are a cyber security testing expert. You are familiar with writing security test cases. Also, you are familiar with CAPEC, CWE and SWG O-RAN Security.\n\n"
+    system += f"Given this Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
+    system += f"Given this Use Case Scenario Description,\n{use_case_scenario_description}\n\n"
+    system += f"Given these CAPEC attack patterns,\n{capec_attack_patterns}\n\n"
+    user = 'Understand the threat model(s) from the given Use Case Scenario Title and Use Case Scenario Description. From your understanding of the threat model and CAPEC attack patterns, find CAPEC attack pattern(s) that have high relevance and high match with the threat model(s) with above 90%% confidence only. Also, for the found and matched attack pattern(s), give an explanation and confidence score as to why the attack pattern is found and matched. Output this in a JSON array of JSON objects, the JSON object must follow in this format, {"content": [{"capec_id":"", "explanation":"", "confidence":""}]}.'
+
+    completion = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-16k",
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user}
+        ],
+        temperature=0
+    )
+    llm_contents = json.loads(completion.choices[0].message["content"])
+
+    for content in llm_contents["content"]:
+        id_and_explain_map = {"capec_id": content["capec_id"], "explanation":content["explanation"], "confidence":content["confidence"]}
+        related_attacks.add(tuple(id_and_explain_map.items()))
+
+    text = ""
+    for related_attack in related_attacks:
+        related_capec_id = dict(related_attack)["capec_id"]
+        parent_relation = CAPEC[related_capec_id]['parent_relation']
+        if len(parent_relation) > 0:
+            for parent in parent_relation:
+                if parent in CAPEC.keys():
+                    text += f"{related_capec_id}({related_capec_id}:{CAPEC[related_capec_id]['type']}) --> {parent}({parent}: {CAPEC[parent]['type']})\n"
+
+        child_relation = CAPEC[related_capec_id]['child_relation']
+        if len(child_relation) > 0:
+            for child in child_relation:
+                if child in CAPEC.keys():
+                    text += f"{related_capec_id}({related_capec_id}:{CAPEC[related_capec_id]['type']}) --> {child}({child}: {CAPEC[child]['type']})\n"
+
+    if text:
+        capec_related_attacks_graph(
+            f"""
+            graph LR
+            {text}
+            """
+        )
+
+    return related_attacks
+
 def find_oran_components_related_attacks(data_assets, near_rt_ric_assets, actions):
     related_attacks = set()
     for oran_component in ORAN_COMPONENTS:
@@ -246,6 +294,31 @@ def find_oran_components_related_attacks(data_assets, near_rt_ric_assets, action
     
     return related_attacks
 
+def find_oran_components_related_attacks_llm(use_case_scenario_title, use_case_scenario_description, oran_components_attack_patterns):
+    related_attacks = set()
+
+    system = "You are a cyber security testing expert. You are familiar with writing security test cases. Also, you are familiar with SWG O-RAN Security.\n\n"
+    system += f"Given this Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
+    system += f"Given this Use Case Scenario Description,\n{use_case_scenario_description}\n\n"
+    system += f"Given these OpenRAN attack patterns,\n{oran_components_attack_patterns}\n\n"
+    user = 'Understand the threat model(s) from the given Use Case Scenario Title and Use Case Scenario Description. From your understanding of the threat model and OpenRAN attack patterns, find OpenRAN attack pattern(s) that have high relevance and high match with the threat model(s) with above 90%% confidence only. Also, for the found and matched attack pattern(s), give an explanation and confidence score as to why the attack pattern is found and matched. Output this in a JSON array of JSON objects, the JSON object must follow in this format, {"content": [{"threat_id":"", "explanation":"", "confidence":""}]}.'
+
+    completion = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-16k",
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user}
+        ],
+        temperature=0
+    )
+    llm_contents = json.loads(completion.choices[0].message["content"])
+
+    for content in llm_contents["content"]:
+        id_and_explain_map = {"threat_id": content["threat_id"], "explanation":content["explanation"], "confidence":content["confidence"]}
+        related_attacks.add(tuple(id_and_explain_map.items()))
+
+    return related_attacks
+
 def find_oran_near_rt_ric_related_attacks(data_assets, near_rt_ric_assets, actions):
     related_attacks = set()
     for oran_near_rt_ric_key, oran_near_rt_ric_val in ORAN_NEAR_RT_RIC.items():
@@ -269,6 +342,31 @@ def find_oran_near_rt_ric_related_attacks(data_assets, near_rt_ric_assets, actio
             """
         )
     
+    return related_attacks
+
+def find_oran_near_rt_ric_related_attacks_llm(use_case_scenario_title, use_case_scenario_description, oran_near_rt_ric_attack_patterns):
+    related_attacks = set()
+
+    system = "You are a cyber security testing expert. You are familiar with writing security test cases. Also, you are familiar with SWG O-RAN Security.\n\n"
+    system += f"Given this Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
+    system += f"Given this Use Case Scenario Description,\n{use_case_scenario_description}\n\n"
+    system += f"Given these OpenRAN Near-RT RIC attack patterns,\n{oran_near_rt_ric_attack_patterns}\n\n"
+    user = 'Understand the threat model(s) from the given Use Case Scenario Title and Use Case Scenario Description. From your understanding of the threat model and OpenRAN Near-RT RIC attack patterns, find OpenRAN Near-RT RIC attack pattern(s) that have high relevance and high match with the threat model(s) with above 90%% confidence only. Also, for the found and matched attack pattern(s), give an explanation and confidence score as to why the attack pattern is found and matched. Output this in a JSON array of JSON objects, the JSON object must follow in this format, {"content": [{"threat_id":"", "explanation":"", "confidence":""}]}.'
+
+    completion = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-16k",
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user}
+        ],
+        temperature=0
+    )
+    llm_contents = json.loads(completion.choices[0].message["content"])
+
+    for content in llm_contents["content"]:
+        id_and_explain_map = {"threat_id": content["threat_id"], "explanation":content["explanation"], "confidence":content["confidence"]}
+        related_attacks.add(tuple(id_and_explain_map.items()))
+
     return related_attacks
 
 def find_oran_security_analysis_related_attacks(data_assets, near_rt_ric_assets, actions):
@@ -303,12 +401,38 @@ def find_oran_security_analysis_related_attacks(data_assets, near_rt_ric_assets,
     
     return related_attacks
 
-def find_weaknesses_and_countermeasures(found_CAPEC_attacks, data_assets, near_rt_ric_assets):
+def find_oran_security_analysis_related_attacks_llm(use_case_scenario_title, use_case_scenario_description, oran_security_analysis_attack_patterns):
+    related_attacks = set()
+
+    system = "You are a cyber security testing expert. You are familiar with writing security test cases. Also, you are familiar with SWG O-RAN Security.\n\n"
+    system += f"Given this Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
+    system += f"Given this Use Case Scenario Description,\n{use_case_scenario_description}\n\n"
+    system += f"Given these OpenRAN Near-RT RIC and xApps attack patterns,\n{oran_security_analysis_attack_patterns}\n\n"
+    user = 'Understand the threat model(s) from the given Use Case Scenario Title and Use Case Scenario Description. From your understanding of the threat model and OpenRAN Near-RT RIC and xApps attack patterns, find OpenRAN Near-RT RIC and xApps attack pattern(s) that have high relevance and high match with the threat model(s) with above 90%% confidence only. Also, for the found and matched attack pattern(s), give an explanation and confidence score as to why the attack pattern is found and matched. Output this in a JSON array of JSON objects, the JSON object must follow in this format, {"content": [{"threat_id":"", "explanation":"", "confidence":""}]}.'
+
+    completion = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-16k",
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user}
+        ],
+        temperature=0
+    )
+    llm_contents = json.loads(completion.choices[0].message["content"])
+
+    for content in llm_contents["content"]:
+        id_and_explain_map = {"threat_id": content["threat_id"], "explanation":content["explanation"], "confidence":content["confidence"]}
+        related_attacks.add(tuple(id_and_explain_map.items()))
+
+    return related_attacks
+
+def find_weaknesses_and_countermeasures(found_CAPEC_attacks):
     CWEs_matched = set()
     ASVSs_matched = set()
     for found_CAPEC_attack in found_CAPEC_attacks:
-        if CAPEC[found_CAPEC_attack]:
-            related_weaknesses = CAPEC[found_CAPEC_attack]["related_weaknesses"]
+        capec_id = dict(found_CAPEC_attack)["capec_id"]
+        if CAPEC[capec_id]:
+            related_weaknesses = CAPEC[capec_id]["related_weaknesses"]
             if related_weaknesses:
                 for related_weakness in related_weaknesses:
                     if CWE[related_weakness]:
@@ -357,8 +481,8 @@ def gen_prompt(
     system += f"SWG O-RAN Near-RT RIC Component Threat Model,\n{SWG_O_RAN_Near_RT_RIC_Components_Threat_Model if SWG_O_RAN_Near_RT_RIC_Components_Threat_Model else NONE}\n\n"
     system += f"SWG Security Analysis for Near-RT RIC and xApps,\n{SWG_Security_Analysis_for_Near_RT_RIC_and_xApps if SWG_Security_Analysis_for_Near_RT_RIC_and_xApps else NONE}\n\n"
     system += f"Examples of Misuse Case Scenario in Gherkin language syntax,\n{Examples_Misuse_Case_Scenario if Examples_Misuse_Case_Scenario else NONE}\n\n"
-    user = f"Construct a Misuse Case Scenario in Gherkin language syntax from above Use Case Scenario, CAPEC, CWEs, SWG O-RAN Components Threat Model (if not none), SWG O-RAN Near-RT RIC Component Threat Model (if not none) and SWG Security Analysis for Near-RT RIC and xApps (if not none)."
-    return system, user, system+user
+    user = 'From your understanding of the given examples of Misuse Case Scenario, construct best 5 unique Misuse Case Scenarios in Gherkin language syntax from above Use Case Scenario, CAPEC, CWEs, SWG O-RAN Components Threat Model (if not none), SWG O-RAN Near-RT RIC Component Threat Model (if not none) and SWG Security Analysis for Near-RT RIC and xApps (if not none). Output this in a JSON array of objects, the object must follow in this format, {"misuse_case_scenario":""}.'
+    return system, user, system
 
 
 # Initial page config
@@ -407,8 +531,20 @@ def read_data():
     with open('./data/misuse-case-scenario-examples.json', "r") as mcs_examples_file:
         MCS = json.load(mcs_examples_file)
 
+def run_step2():
+    st.session_state.step2 = True
+
+def run_step3():
+    st.session_state.step3 = True
+
 def cs_body():
     with st.container():
+        if 'step2' not in st.session_state:
+            st.session_state.step2 = False
+
+        if 'step3' not in st.session_state:
+            st.session_state.step3 = False
+
         st.header("1. Build Use Case Scenario Model")
 
         st.subheader("Step 1: Input Use Case Scenario")
@@ -483,122 +619,235 @@ def cs_body():
                 """
             )
 
-            st.header("2. Find Related Attacks")
+            step2_btn = st.button("Find Related Attacks", use_container_width=True, on_click=run_step2)
+
+            st.header("2. Found Related Attacks")
             capec_related_attacks = set()
             oran_components_related_attacks = set()
             oran_near_rt_ric_related_attacks = set()
             oran_security_analysis_related_attacks = set()
-            capec_related_attacks = find_capec_related_attacks(data_assets, near_rt_ric_assets, actions)
-            oran_components_related_attacks = find_oran_components_related_attacks(data_assets, near_rt_ric_assets, actions)
-            oran_near_rt_ric_related_attacks = find_oran_near_rt_ric_related_attacks(data_assets, near_rt_ric_assets, actions)
-            oran_security_analysis_related_attacks = find_oran_security_analysis_related_attacks(data_assets, near_rt_ric_assets, actions)
 
-            st.subheader("CAPEC Related Attacks")
-            if capec_related_attacks:
-                for capec_related_attack in capec_related_attacks:
-                    st.write(capec_related_attack)
-            else:
-                st.write("There are no CAPEC Related Attacks found.")
+            if st.session_state.step2:
+                # if actions and data_assets and near_rt_ric_assets:
+                    # capec_related_attacks = find_capec_related_attacks(data_assets, near_rt_ric_assets, actions)
+                    # oran_components_related_attacks = find_oran_components_related_attacks(data_assets, near_rt_ric_assets, actions)
+                    # oran_near_rt_ric_related_attacks = find_oran_near_rt_ric_related_attacks(data_assets, near_rt_ric_assets, actions)
+                    # oran_security_analysis_related_attacks = find_oran_security_analysis_related_attacks(data_assets, near_rt_ric_assets, actions)
 
-            st.subheader("O-RAN Components Related Attacks")
-            if oran_components_related_attacks:
-                for oran_components_related_attack in oran_components_related_attacks:
-                    st.write(oran_components_related_attack)
-            else:
-                st.write("There are no O-RAN Components Related Attacks found.")
+                if st.session_state.ucs != "" and st.session_state.ucstitle != "":
+                    capec_attack_patterns = ""
+                    for CAPEC_atk_pattern_id, CAPEC_atk_pattern in CAPEC.items():
+                        capec_attack_patterns += f"CAPEC id: {CAPEC_atk_pattern_id}: CAPEC Title: {CAPEC_atk_pattern['type']}. CAPEC description: {CAPEC_atk_pattern['description']}\n"
 
-            st.subheader("O-RAN Near-RT RIC Related Attacks")
-            if oran_near_rt_ric_related_attacks:
-                for oran_near_rt_ric_related_attack in oran_near_rt_ric_related_attacks:
-                    st.write(oran_near_rt_ric_related_attack)
-            else:
-                st.write("There are no O-RAN Near-RT RIC Related Attacks found.")
+                    capec_related_attacks = find_capec_related_attacks_llm(st.session_state.ucs, st.session_state.ucstitle, capec_attack_patterns)
 
-            st.subheader("O-RAN Security Analysis on Near-RT RIC and xApps Related Attacks")
-            if oran_security_analysis_related_attacks:
-                for oran_security_analysis_related_attack in oran_security_analysis_related_attacks:
-                    st.write(oran_security_analysis_related_attack)
-            else:
-                st.write("There are no O-RAN Security Analysis on Near-RT RIC and xApps Related Attacks found.")
+                if st.session_state.ucs != "" and st.session_state.ucstitle != "":
+                    oran_components_attack_patterns = ""
+                    for oran_components_atk_pattern in ORAN_COMPONENTS:
+                        oran_components_attack_patterns += f"Threat id: {oran_components_atk_pattern['threat_id']}: Threat Title: {oran_components_atk_pattern['threat_title']}. Threat description: {oran_components_atk_pattern['threat_description']}\n"
 
+                    oran_components_related_attacks = find_oran_components_related_attacks_llm(st.session_state.ucs, st.session_state.ucstitle, oran_components_attack_patterns)
+
+                if st.session_state.ucs != "" and st.session_state.ucstitle != "":
+                    oran_near_rt_ric_attack_patterns = ""
+                    for oran_near_rt_ric_atk_pattern_id, oran_near_rt_ric_atk_pattern in ORAN_NEAR_RT_RIC.items():
+                        oran_near_rt_ric_attack_patterns += f"Threat id: {oran_near_rt_ric_atk_pattern_id}: Threat Title: {oran_near_rt_ric_atk_pattern['threat_title']}. Threat description: {oran_near_rt_ric_atk_pattern['threat_description']}\n"
+
+                    oran_near_rt_ric_related_attacks = find_oran_near_rt_ric_related_attacks_llm(st.session_state.ucs, st.session_state.ucstitle, oran_near_rt_ric_attack_patterns)
+
+                if st.session_state.ucs != "" and st.session_state.ucstitle != "":
+                    oran_security_analysis_attack_patterns = ""
+                    for oran_security_analysis_atk_pattern_title, oran_security_analysis_atk_pattern in ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS.items():
+                        oran_security_analysis_attack_patterns += f"Threat Title: {oran_security_analysis_atk_pattern['key_issue_title']}. Threat description: {oran_security_analysis_atk_pattern['key_issue_detail']}. Security threats: {'.'.join(oran_security_analysis_atk_pattern['security_threats'])}\n"
+
+                    oran_security_analysis_related_attacks = find_oran_security_analysis_related_attacks_llm(st.session_state.ucs, st.session_state.ucstitle, oran_security_analysis_attack_patterns)
+
+                st.subheader("CAPEC Related Attacks")
+                if capec_related_attacks:
+                    for capec_related_attack in capec_related_attacks:
+                        related_capec_id = dict(capec_related_attack)["capec_id"]
+                        related_capec_explain = dict(capec_related_attack)['explanation']
+                        related_capec_confidence = dict(capec_related_attack)['confidence']
+                        CAPEC_ID = CAPEC[related_capec_id]["capec_id"]
+                        CAPEC_TITLE = CAPEC[related_capec_id]["type"]
+                        CAPEC_DESCRIPTION = CAPEC[related_capec_id]["description"]
+                        st.write(f"ID: {CAPEC_ID}")
+                        st.write(f"Title: {CAPEC_TITLE}")
+                        st.write(f"Description: {CAPEC_DESCRIPTION}")
+                        st.write(f"Explanation: {related_capec_explain}")
+                        st.write(f"Confidence Score: {related_capec_confidence}")
+                        st.write("")
+                else:
+                    st.write("There are no CAPEC Related Attacks found.")
+
+                st.subheader("O-RAN Components Related Attacks")
+                if len(oran_components_related_attacks) > 0:
+                    for oran_components_atk_pattern in ORAN_COMPONENTS:
+                        for related_attack in oran_components_related_attacks:
+                            related_id = dict(related_attack)["threat_id"]
+                            related_explain = dict(related_attack)['explanation']
+                            related_confidence = dict(related_attack)['confidence']
+                            if oran_components_atk_pattern["threat_id"] == related_id:
+                                ORAN_COMPONENS_ID = oran_components_atk_pattern["threat_id"]
+                                ORAN_COMPONENT_TITLE = oran_components_atk_pattern["threat_title"]
+                                ORAN_COMPONENT_DESCRIPTION = oran_components_atk_pattern["threat_description"]
+                                st.write(f"ID: {ORAN_COMPONENS_ID}")
+                                st.write(f"Title: {ORAN_COMPONENT_TITLE}")
+                                st.write(f"Description: {ORAN_COMPONENT_DESCRIPTION}")
+                                st.write(f"Explanation: {related_explain}")
+                                st.write(f"Confidence Score: {related_confidence}")
+                                st.write("")
+                else:
+                    st.write("There are no O-RAN Components Related Attacks found.")
+
+                st.subheader("O-RAN Near-RT RIC Related Attacks")
+                if len(oran_near_rt_ric_related_attacks) > 0:
+                    for oran_near_rt_ric_related_attack in oran_near_rt_ric_related_attacks:
+                        related_oran_near_rt_ric_id = dict(oran_near_rt_ric_related_attack)["threat_id"]
+                        related_oran_near_rt_ric_explain = dict(oran_near_rt_ric_related_attack)['explanation']
+                        related_oran_near_rt_ric_confidence = dict(oran_near_rt_ric_related_attack)['confidence']
+                        ID = ORAN_NEAR_RT_RIC[related_oran_near_rt_ric_id]["threat_id"]
+                        TITLE = ORAN_NEAR_RT_RIC[related_oran_near_rt_ric_id]["threat_title"]
+                        DESCRIPTION = ORAN_NEAR_RT_RIC[related_oran_near_rt_ric_id]["threat_description"]
+                        st.write(f"ID: {ID}")
+                        st.write(f"Title: {TITLE}")
+                        st.write(f"Description: {DESCRIPTION}")
+                        st.write(f"Explanation: {related_oran_near_rt_ric_explain}")
+                        st.write(f"Confidence Score: {related_oran_near_rt_ric_confidence}")
+                        st.write("")
+                else:
+                    st.write("There are no O-RAN Near-RT RIC Related Attacks found.")
+
+                st.subheader("O-RAN Security Analysis on Near-RT RIC and xApps Related Attacks")
+                if len(oran_security_analysis_related_attacks) > 0:
+                    for oran_security_analysis_related_attack in oran_security_analysis_related_attacks:
+                        related_oran_security_analysis_id = dict(oran_security_analysis_related_attack)["threat_id"]
+                        related_oran_security_analysis_explain = dict(oran_security_analysis_related_attack)['explanation']
+                        related_oran_security_analysis_confidence = dict(oran_security_analysis_related_attack)['confidence']
+                        TITLE = ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["key_issue_title"]
+                        DESCRIPTION = ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["key_issue_detail"]
+                        SECURITY_THREATS = ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["security_threats"]
+                        st.write(f"Title: {TITLE}")
+                        st.write(f"Description: {DESCRIPTION}")
+                        st.write(f"Security Threats: {SECURITY_THREATS}")
+                        st.write(f"Explanation: {related_oran_security_analysis_explain}")
+                        st.write(f"Confidence Score: {related_oran_security_analysis_confidence}")
+                        st.write("")
+                else:
+                    st.write("There are no O-RAN Security Analysis on Near-RT RIC and xApps Related Attacks found.")
+
+                step3_btn = st.button("Recommend Countermeasures and Construct Misuse Case Scenario", use_container_width=True, on_click=run_step3)
 
             st.header("3. Construct Misuse Case Scenario")
-            CWEs_matched, ASVSs_matched = find_weaknesses_and_countermeasures(
-                capec_related_attacks,
-                data_assets,
-                near_rt_ric_assets
-            )
-            st.subheader("CWE")
-            if CWEs_matched:
+            if st.session_state.step3:
+                CWEs_matched, ASVSs_matched = find_weaknesses_and_countermeasures(
+                    capec_related_attacks
+                )
+                st.subheader("CWE")
+                if CWEs_matched:
+                    for CWE_matched in CWEs_matched:
+                        CWE_id = CWE[CWE_matched]["cwe_id"]
+                        CWE_type = CWE[CWE_matched]["type"]
+                        CWE_description = CWE[CWE_matched]["description"]
+                        st.write(f"ID: {CWE_id}")
+                        st.write(f"Type: {CWE_type}")
+                        st.write(f"Description: {CWE_description}\n")
+                        st.write("")
+                else:
+                    st.write("CWE not found")
+
+                st.subheader("ASVS Countermeasures")
+                if ASVSs_matched:
+                    for ASVS_matched in ASVSs_matched:
+                        ASVS_id = ASVS[ASVS_matched]["asvs_id"]
+                        ASVS_type = ASVS[ASVS_matched]["type"]
+                        ASVS_description = ASVS[ASVS_matched]["description"]
+                        st.write(f"ID: {ASVS_id}")
+                        st.write(f"Type: {ASVS_type}")
+                        st.write(f"Description: {ASVS_description}\n")
+                        st.write("")
+                else:
+                    st.write("ASVS Countermeasures not found")
+
+                st.subheader("O-RAN Near-RT RIC Countermeasures")
+                st.write("There are no O-RAN Near-RT RIC Countermeasures found.")
+
+                st.subheader("O-RAN Near-RT RIC xApp Countermeasures")
+                st.write("There are no O-RAN Near-RT RIC xApp Countermeasures found.")
+
+                st.subheader("Suggested Prompt Design")
+                CAPEC_prompt = ""
+                for capec_related_attack in capec_related_attacks:
+                    capec_id = dict(capec_related_attack)['capec_id']
+                    CAPEC_type = CAPEC[capec_id]["type"]
+                    CAPEC_description = CAPEC[capec_id]["description"]
+                    CAPEC_prompt += f"{capec_id}: {CAPEC_type}. {CAPEC_description}\n"
+
+                CWE_prompt = ""
                 for CWE_matched in CWEs_matched:
                     CWE_id = CWE[CWE_matched]["cwe_id"]
                     CWE_type = CWE[CWE_matched]["type"]
                     CWE_description = CWE[CWE_matched]["description"]
-                    st.write(f"ID: {CWE_id}")
-                    st.write(f"Type: {CWE_type}")
-                    st.write(f"Description: {CWE_description}\n")
-                    st.write("")
-            else:
-                st.write("CWE not found")
+                    CWE_prompt += f"{CWE_id}: {CWE_type}. {CWE_description}\n"
 
-            st.subheader("ASVS Countermeasures")
-            if ASVSs_matched:
-                for ASVS_matched in ASVSs_matched:
-                    ASVS_id = ASVS[ASVS_matched]["asvs_id"]
-                    ASVS_type = ASVS[ASVS_matched]["type"]
-                    ASVS_description = ASVS[ASVS_matched]["description"]
-                    st.write(f"ID: {ASVS_id}")
-                    st.write(f"Type: {ASVS_type}")
-                    st.write(f"Description: {ASVS_description}\n")
-                    st.write("")
-            else:
-                st.write("ASVS Countermeasures not found")
+                ORAN_COMPONENTS_prompt = ""
+                for oran_components_atk_pattern in ORAN_COMPONENTS:
+                    for related_attack in oran_components_related_attacks:
+                        related_id = dict(related_attack)["threat_id"]
+                        if oran_components_atk_pattern["threat_id"] == related_id:
+                            ORAN_COMPONENTS_prompt += f"Title: {ORAN_COMPONENT_TITLE} Description: {ORAN_COMPONENT_DESCRIPTION}\n"
 
-            st.subheader("O-RAN Near-RT RIC Countermeasures")
-            st.write("There are no O-RAN Near-RT RIC Countermeasures found.")
+                ORAN_NEARRT_RIC_prompt = ""
+                for oran_near_rt_ric_related_attack in oran_near_rt_ric_related_attacks:
+                    related_oran_near_rt_ric_id = dict(oran_near_rt_ric_related_attack)["threat_id"]
+                    TITLE = ORAN_NEAR_RT_RIC[related_oran_near_rt_ric_id]["threat_title"]
+                    DESCRIPTION = ORAN_NEAR_RT_RIC[related_oran_near_rt_ric_id]["threat_description"]
+                    ORAN_NEARRT_RIC_prompt += f"Title: {TITLE} Description: {DESCRIPTION}\n"
 
-            st.subheader("O-RAN Near-RT RIC xApp Countermeasures")
-            st.write("There are no O-RAN Near-RT RIC xApp Countermeasures found.")
+                ORAN_SECURITY_ANALYSIS_prompt = ""
+                for oran_security_analysis_related_attack in oran_security_analysis_related_attacks:
+                    related_oran_security_analysis_id = dict(oran_security_analysis_related_attack)["threat_id"]
+                    TITLE = ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["key_issue_title"]
+                    DESCRIPTION = ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["key_issue_detail"]
+                    SECURITY_THREATS = ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["security_threats"]
+                    ORAN_SECURITY_ANALYSIS_prompt += f"Title: {TITLE} Description: {DESCRIPTION} Security Threats: {SECURITY_THREATS}\n"
 
-            st.subheader("Suggested Prompt Design")
-            CAPEC_prompt = ""
-            for capec_related_attack in capec_related_attacks:
-                CAPEC_type = CAPEC[capec_related_attack]["type"]
-                CAPEC_description = CAPEC[capec_related_attack]["description"]
-                CAPEC_prompt += f"{capec_related_attack}: {CAPEC_type}. {CAPEC_description}\n"
+                Examples_Misuse_Case_Scenario = ""
+                for index in range(len(MCS)):
+                    Examples_Misuse_Case_Scenario += f"Misuse Case Scenario #{index+1}: "+MCS[index]+"\n"
 
-            CWE_prompt = ""
-            for CWE_matched in CWEs_matched:
-                CWE_id = CWE[CWE_matched]["cwe_id"]
-                CWE_type = CWE[CWE_matched]["type"]
-                CWE_description = CWE[CWE_matched]["description"]
-                CWE_prompt += f"{CWE_id}: {CWE_type}. {CWE_description}\n"
+                system, user, prompt = gen_prompt(
+                    st.session_state.ucs,
+                    st.session_state.ucstitle,
+                    CAPEC_prompt,
+                    CWE_prompt,
+                    ORAN_COMPONENTS_prompt,
+                    ORAN_NEARRT_RIC_prompt,
+                    ORAN_SECURITY_ANALYSIS_prompt,
+                    Examples_Misuse_Case_Scenario,
+                )
 
-            Examples_Misuse_Case_Scenario = ""
-            for scenario in MCS:
-                Examples_Misuse_Case_Scenario += scenario
+                st.text_area(label="prompt_design", height=850, value=prompt, disabled=True)
 
-            system, user, prompt = gen_prompt(
-                st.session_state.ucs,
-                st.session_state.ucstitle,
-                CAPEC_prompt,
-                CWE_prompt,
-                oran_components_related_attacks,
-                oran_near_rt_ric_related_attacks,
-                oran_security_analysis_related_attacks,
-                Examples_Misuse_Case_Scenario,
-            )
-            st.text_area(label="prompt_design", height=850, value=prompt, disabled=True)
+                option = st.selectbox(
+                    'Which Generative AI LLM Model?',
+                    ('gpt-3.5-turbo', 'gpt-3.5-turbo-16k')
+                )
 
-            completion = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": user}
-                ]
-            )
+                if system and user and prompt and option:
+                    with st.spinner("Getting LLM generated Misuse Case Scenarios"):
+                        completion = openai.ChatCompletion.create(
+                            model="gpt-3.5-turbo",
+                            messages=[
+                                {"role": "system", "content": system},
+                                {"role": "user", "content": user}
+                            ],
+                            temperature=0
+                        )
 
-            st.text_area(label="gpt_completion", height=850, value=completion.choices[0].message, disabled=True)
+                        llm_contents = json.loads(completion.choices[0].message["content"])
+                        for llm_content_index in range(len(llm_contents)):
+                            st.text_area(label=f"llm_completion_{llm_content_index+1}", height=150, value=llm_contents[llm_content_index]["misuse_case_scenario"], disabled=True)
 
 
 def main():

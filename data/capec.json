@@ -5,6 +5,7 @@
         "description": "An adversary monitors data streams to or from the target for information gathering purposes. This attack may be undertaken to solely gather sensitive information or to support a further attack against the target. This attack pattern can involve sniffing network traffic as well as other types of data streams (e.g. radio). The adversary can attempt to initiate the establishment of a data stream or passively observe the communications as they unfold. In all variants of this attack, the adversary is not the intended recipient of the data stream. In contrast to other means of gathering information (e.g., targeting data leaks), the adversary must actively position themself so as to observe explicit data channels (e.g. network traffic) and read the content. However, this attack differs from a Adversary-In-the-Middle (CAPEC-94) attack, as the adversary does not alter the content of the communications nor forward data to the intended recipient.",
         "mitigations": "Leverage encryption to encode the transmission of data thus making it accessible only to authorized parties.",
         "child_relation": ["CAPEC-157", "CAPEC-499", "CAPEC-651"],
+        "related_weaknesses": [],
         "parent_relation": [],
         "tags": [
             "Interception",
@@ -132,5 +133,75 @@
             "Numeric manipulation",
             "Integer-based attacks"
         ]
+    },
+    "CAPEC-212": {
+        "capec_id": "CAPEC-212",
+        "type": "Functionality Misuse",
+        "description": "An adversary leverages a legitimate capability of an application in such a way as to achieve a negative technical impact. The system functionality is not altered or modified but used in a way that was not intended. This is often accomplished through the overuse of a specific functionality or by leveraging functionality with design flaws that enables the adversary to gain access to unauthorized, sensitive data. ",
+        "mitigations": "Perform comprehensive threat modeling, a process of identifying, evaluating, and mitigating potential threats to the application. This effort can help reveal potentially obscure application functionality that can be manipulated for malicious purposes. ",
+        "child_relation": [],
+        "parent_relation": ["CAPEC-2", "CAPEC-48", "CAPEC-50", "CAPEC-111", "CAPEC-620", "CAPEC-682", "CAPEC-663"],
+        "related_weaknesses": ["CWE-1242","CWE-1246","CWE-1281"],
+        "tags": []
+    },
+    "CAPEC-13": {
+        "capec_id": "CAPEC-13",
+        "type": "Subverting Environment Variable Values",
+        "description": "The adversary directly or indirectly modifies environment variables used by or controlling the target software. The adversary's goal is to cause the target software to deviate from its expected operation in a manner that benefits the adversary. ",
+        "mitigations": "Protect environment variables against unauthorized read and write access. Protect the configuration files which contain environment variables against illegitimate read and write access. Assume all input is malicious. Create an allowlist that defines all valid input to the software system based on the requirements specifications. Input that does not match against the allowlist should not be permitted to enter into the system. Apply the least privilege principles. If a process has no legitimate reason to read an environment variable do not give that privilege. ",
+        "child_relation": ["CAPEC-77"],
+        "parent_relation": [],
+        "related_weaknesses": ["CWE-353","CWE-285","CWE-302","CWE-74","CWE-15","CWE-73","CWE-20","CWE-200"],
+        "tags": []
+    },
+    "CAPEC-22": {
+        "capec_id": "CAPEC-22",
+        "type": "Exploiting Trust in Client",
+        "description": "An attack of this type exploits vulnerabilities in client/server communication channel authentication and data integrity. It leverages the implicit trust a server places in the client, or more importantly, that which the server believes is the client. An attacker executes this type of attack by communicating directly with the server where the server believes it is communicating only with a valid client. There are numerous variations of this type of attack. ",
+        "mitigations": "Design: Ensure that client process and/or message is authenticated so that anonymous communications and/or messages are not accepted by the system. Design: Do not rely on client validation or encoding for security purposes. Design: Utilize digital signatures to increase authentication assurance. Design: Utilize two factor authentication to increase authentication assurance. Implementation: Perform input validation for all remote content. ",
+        "child_relation": [],
+        "parent_relation": ["CAPEC-39", "CAPEC-77", "CAPEC-202", "CAPEC-207"],
+        "related_weaknesses": ["CWE-290","CWE-287","CWE-20","CWE-200","CWE-693"],
+        "tags": []
+    },
+    "CAPEC-39": {
+        "capec_id": "CAPEC-39",
+        "type": "Manipulating Opaque Client-based Data Tokens",
+        "description": "In circumstances where an application holds important data client-side in tokens (cookies, URLs, data files, and so forth) that data can be manipulated. If client or server-side application components reinterpret that data as authentication tokens or data (such as store item pricing or wallet information) then even opaquely manipulating that data may bear fruit for an Attacker. In this pattern an attacker undermines the assumption that client side tokens have been adequately protected from tampering through use of encryption or obfuscation. ",
+        "mitigations": "One solution to this problem is to protect encrypted data with a CRC of some sort. If knowing who last manipulated the data is important, then using a cryptographic 'message authentication code' (or hMAC) is prescribed. However, this guidance is not a panacea. In particular, any value created by (and therefore encrypted by) the client, which itself is a 'malicious' value, all the protective cryptography in the world can't make the value 'correct' again. Put simply, if the client has control over the whole process of generating and encoding the value, then simply protecting its integrity doesn't help. Make sure to protect client side authentication tokens for confidentiality (encryption) and integrity (signed hash) Make sure that all session tokens use a good source of randomness Perform validation on the server side to make sure that client side data tokens are consistent with what is expected. ",
+        "child_relation": ["CAPEC-22"],
+        "parent_relation": ["CAPEC-31"],
+        "related_weaknesses": ["CWE-353","CWE-285","CWE-302","CWE-472","CWE-565","CWE-315","CWE-539","CWE-384","CWE-233"],
+        "tags": []
+    },
+    "CAPEC-77": {
+        "capec_id": "CAPEC-77",
+        "type": "Manipulating User-Controlled Variables",
+        "description": "This attack targets user controlled variables (DEBUG=1, PHP Globals, and So Forth). An adversary can override variables leveraging user-supplied, untrusted query variables directly used on the application server without any data sanitization. In extreme cases, the adversary can change variables controlling the business logic of the application. For instance, in languages like PHP, a number of poorly set default configurations may allow the user to override variables. ",
+        "mitigations": "Do not allow override of global variables and do Not Trust Global Variables. If the register_globals option is enabled, PHP will create global variables for each GET, POST, and cookie variable included in the HTTP request. This means that a malicious user may be able to set variables unexpectedly. For instance make sure that the server setting for PHP does not expose global variables. A software system should be reluctant to trust variables that have been initialized outside of its trust boundary. Ensure adequate checking is performed when relying on input from outside a trust boundary. Separate the presentation layer and the business logic layer. Variables at the business logic layer should not be exposed at the presentation layer. This is to prevent computation of business logic from user controlled input data. Use encapsulation when declaring your variables. This is to lower the exposure of your variables. Assume all input is malicious. Create an allowlist that defines all valid input to the software system based on the requirements specifications. Input that does not match against the allowlist should be rejected by the program. ",
+        "child_relation": ["CAPEC-22"],
+        "parent_relation": ["CAPEC-31", "CAPEC-162"],
+        "related_weaknesses": ["CWE-15", "CWE-94", "CWE-96", "CWE-285", "CWE-302", "CWE-473", "CWE-1321"],
+        "tags": []
+    },
+    "CAPEC-202": {
+        "capec_id": "CAPEC-202",
+        "type": "Create Malicious Client",
+        "description": "An adversary creates a client application to interface with a target service where the client violates assumptions the service makes about clients. Services that have designated client applications (as opposed to services that use general client applications, such as IMAP or POP mail servers which can interact with any IMAP or POP client) may assume that the client will follow specific procedures. For example, servers may assume that clients will accurately compute values (such as prices), will send correctly structured messages, and will attempt to ensure efficient interactions with the server. By reverse-engineering a client and creating their own version, an adversary can take advantage of these assumptions to abuse service functionality. For example, a purchasing service might send a unit price to its client and expect the client to correctly compute the total cost of a purchase. If the adversary uses a malicious client, however, the adversary could ignore the server input and declare any total price. Likewise, an adversary could configure the client to retain network or other server resources for longer than legitimately necessary in order to degrade server performance. Even services with general clients can be susceptible to this attack if they assume certain client behaviors. However, such services generally can make fewer assumptions about the behavior of their clients in the first place and, as such, are less likely to make assumptions that an adversary can exploit. ",
+        "mitigations": "",
+        "child_relation": ["CAPEC-22"],
+        "parent_relation": [],
+        "related_weaknesses": ["CWE-602"],
+        "tags": []
+    },
+    "CAPEC-207": {
+        "capec_id": "CAPEC-207",
+        "type": "Removing Important Client Functionality",
+        "description": "Design: For any security checks that are performed on the client side, ensure that these checks are duplicated on the server side. Design: Ship client-side application with integrity checks (code signing) when possible. Design: Use obfuscation and other techniques to prevent reverse engineering the client code. ",
+        "mitigations": "",
+        "child_relation": ["CAPEC-22"],
+        "parent_relation": ["CAPEC-200", "CAPEC-208"],
+        "related_weaknesses": ["CWE-602"],
+        "tags": []
     }
 }
