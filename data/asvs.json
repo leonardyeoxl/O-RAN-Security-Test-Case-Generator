@@ -108,5 +108,194 @@
             "URI-level authorization",
             "resource-level authorization"
         ]  
+    },
+    "10.3.2": {
+        "asvs_id": "10.3.2",
+        "type": "Deployed Application Integrity Controls",
+        "description": "Verify that the application employs integrity protections, such as code signing or sub-resource integrity. The application must not load or execute code from untrusted sources, such as loading includes, modules, plugins, code, or libraries from untrusted sources or the Internet.",
+        "related_cwe_ids": ["CWE-353"],
+        "tags": []  
+    },
+    "12.3.2": {
+        "asvs_id": "12.3.2",
+        "type": "File execution Requirements",
+        "description": "Verify that user-submitted filename metadata is validated or ignored to prevent the disclosure, creation, updating or removal of local files (LFI).",
+        "related_cwe_ids": ["CWE-73"],
+        "tags": []  
+    },
+    "14.3.3": {
+        "asvs_id": "14.3.3",
+        "type": "Unintended Security Disclosure Requirements",
+        "description": "Verify that the HTTP headers or any part of the HTTP response do not expose detailed version information of system components.",
+        "related_cwe_ids": ["CWE-200"],
+        "tags": []  
+    },
+    "7.3.3": {
+        "asvs_id": "7.3.3",
+        "type": "Log Protection Requirements",
+        "description": "Verify that security logs are protected from unauthorized access and modification.",
+        "related_cwe_ids": ["CWE-200"],
+        "tags": []  
+    },
+    "8.3.4": {
+        "asvs_id": "8.3.4",
+        "type": "Sensitive Private Data",
+        "description": "Verify that all sensitive data created and processed by the application has been identified, and ensure that a policy is in place on how to deal with sensitive data.",
+        "related_cwe_ids": ["CWE-200"],
+        "tags": []  
+    },
+    "3.5.1": {
+        "asvs_id": "3.5.1",
+        "type": "Token-based Session Management",
+        "description": "Verify the application does not treat OAuth and refresh tokens — on their own — as the presence of the subscriber and allows users to terminate trust relationships with linked applications.",
+        "related_cwe_ids": ["CWE-290"],
+        "tags": []  
+    },
+    "9.2.3": {
+        "asvs_id": "9.2.3",
+        "type": "Server Communications Security Requirements",
+        "description": "Verify that all encrypted connections to external systems that involve sensitive information or functions are authenticated.",
+        "related_cwe_ids": ["CWE-287"],
+        "tags": []  
+    },
+    "2.3.3": {
+        "asvs_id": "2.3.3",
+        "type": "Authenticator Lifecycle Requirements",
+        "description": "Verify that renewal instructions are sent with sufficient time to renew time bound authenticators.",
+        "related_cwe_ids": ["CWE-287"],
+        "tags": []  
+    },
+    "2.7.1": {
+        "asvs_id": "2.7.1",
+        "type": "Authenticator Lifecycle Requirements",
+        "description": "Verify that clear text out of band (NIST 'restricted') authenticators, such as SMS or PSTN, are not offered by default, and stronger alternatives such as push notifications are offered first.",
+        "related_cwe_ids": ["CWE-287"],
+        "tags": []  
+    },
+    "2.7.2": {
+        "asvs_id": "2.7.2",
+        "type": "Out of Band Verifier Requirements",
+        "description": "Verify that the out of band verifier expires out of band authentication requests, codes, or tokens after 10 minutes.",
+        "related_cwe_ids": ["CWE-287"],
+        "tags": []  
+    },
+    "2.7.3": {
+        "asvs_id": "2.7.3",
+        "type": "Out of Band Verifier Requirements",
+        "description": "Verify that the out of band verifier authentication requests, codes, or tokens are only usable once, and only for the original authentication request.",
+        "related_cwe_ids": ["CWE-287"],
+        "tags": []  
+    },
+    "2.8.4": {
+        "asvs_id": "2.8.4",
+        "type": "Single or Multi Factor One Time Verifier Requirements",
+        "description": "Verify that time-based OTP can be used only once within the validity period.",
+        "related_cwe_ids": ["CWE-287"],
+        "tags": []  
+    },
+    "2.8.5": {
+        "asvs_id": "2.8.5",
+        "type": "Single or Multi Factor One Time Verifier Requirements",
+        "description": "Verify that if a time-based multi factor OTP token is re-used during the validity period, it is logged and rejected with secure notifications being sent to the holder of the device.",
+        "related_cwe_ids": ["CWE-287"],
+        "tags": []  
+    },
+    "2.10.1": {
+        "asvs_id": "2.10.1",
+        "type": "Service Authentication Requirements",
+        "description": "Verify that integration secrets do not rely on unchanging passwords, such as API keys or shared privileged accounts.",
+        "related_cwe_ids": ["CWE-287"],
+        "tags": []  
+    },
+    "3.2.3": {
+        "asvs_id": "3.2.3",
+        "type": "Session Binding Requirements",
+        "description": "Verify the application only stores session tokens in the browser using secure methods such as appropriately secured cookies (see section 3.4) or HTML 5 session storage.",
+        "related_cwe_ids": ["CWE-539"],
+        "tags": []  
+    },
+    "3.2.1": {
+        "asvs_id": "3.2.1",
+        "type": "Session Binding Requirements",
+        "description": "Verify the application generates a new session token on user authentication.",
+        "related_cwe_ids": ["CWE-384"],
+        "tags": []  
+    },
+    "8.1.3": {
+        "asvs_id": "8.1.3",
+        "type": "General Data Protection",
+        "description": "Verify the application minimizes the number of parameters in a request, such as hidden fields, Ajax variables, cookies and header values.",
+        "related_cwe_ids": ["CWE-233"],
+        "tags": []  
+    },
+    "5.2.5": {
+        "asvs_id": "5.2.5",
+        "type": "General Data Protection",
+        "description": "Verify that the application protects against template injection attacks by ensuring that any user input being included is sanitized or sandboxed.",
+        "related_cwe_ids": ["CWE-94"],
+        "tags": []  
+    },
+    "5.2.8": {
+        "asvs_id": "5.2.8",
+        "type": "Sanitization and Sandboxing Requirements",
+        "description": "Verify that the application sanitizes, disables, or sandboxes user-supplied scriptable or expression template language content, such as Markdown, CSS or XSL stylesheets, BBCode, or similar.",
+        "related_cwe_ids": ["CWE-94"],
+        "tags": []  
+    },
+    "1.4.1": {
+        "asvs_id": "1.4.1",
+        "type": "Access Control Architectural Requirements",
+        "description": "Verify that trusted enforcement points such as at access control gateways, servers, and serverless functions enforce access controls. Never enforce access controls on the client.",
+        "related_cwe_ids": ["CWE-602"],
+        "tags": []  
+    },
+    "1.5.3": {
+        "asvs_id": "1.5.3",
+        "type": "Input and Output Architectural Requirements",
+        "description": "Verify that input validation is enforced on a trusted service layer.",
+        "related_cwe_ids": ["CWE-602"],
+        "tags": []  
+    },
+    "4.1.1": {
+        "asvs_id": "4.1.1",
+        "type": "General Access Control Design",
+        "description": "Verify that the application enforces access control rules on a trusted service layer, especially if client-side access control is present and could be bypassed.",
+        "related_cwe_ids": ["CWE-602"],
+        "tags": []  
+    },
+    "4.3.3": {
+        "asvs_id": "4.3.3",
+        "type": "Other Access Control Considerations",
+        "description": "Verify the application has additional authorization (such as step up or adaptive authentication) for lower value systems, and / or segregation of duties for high value applications to enforce anti-fraud controls as per the risk of application and past fraud.",
+        "related_cwe_ids": ["CWE-732"],
+        "tags": []  
+    },
+    "4.1.4": {
+        "asvs_id": "4.1.4",
+        "type": "General Access Control Design",
+        "description": "Verify that the principle of deny by default exists whereby new users/roles start with minimal or no permissions and users/roles do not receive access to new features until access is explicitly assigned. ",
+        "related_cwe_ids": ["CWE-276"],
+        "tags": []  
+    },
+    "12.2.1": {
+        "asvs_id": "12.2.1",
+        "type": "File Integrity Requirements",
+        "description": "Verify that files obtained from untrusted sources are validated to be of expected type based on the file's content",
+        "related_cwe_ids": ["CWE-434"],
+        "tags": []  
+    },
+    "12.5.2": {
+        "asvs_id": "12.5.2",
+        "type": "File Download Requirements",
+        "description": "Verify that direct requests to uploaded files will never be executed as HTML/JavaScript content.",
+        "related_cwe_ids": ["CWE-434"],
+        "tags": []  
+    },
+    "13.1.5": {
+        "asvs_id": "13.1.5",
+        "type": "Generic Web Service Security Verification Requirements",
+        "description": "Verify that requests containing unexpected or missing content types are rejected with appropriate headers (HTTP response status 406 Unacceptable or 415 Unsupported Media Type).",
+        "related_cwe_ids": ["CWE-434"],
+        "tags": []  
     }
 }

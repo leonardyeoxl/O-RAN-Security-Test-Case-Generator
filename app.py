@@ -224,11 +224,11 @@ def find_capec_related_attacks(data_assets, near_rt_ric_assets, actions):
 def find_capec_related_attacks_llm(use_case_scenario_title, use_case_scenario_description, capec_attack_patterns):
     related_attacks = set()
 
-    system = "You are a cyber security testing expert. You are familiar with writing security test cases. Also, you are familiar with CAPEC, CWE and SWG O-RAN Security.\n\n"
+    system = "You are a cyber security testing expert. You are familiar with writing security test cases. Also, you are familiar with CAPEC.\n\n"
     system += f"Given this Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
     system += f"Given this Use Case Scenario Description,\n{use_case_scenario_description}\n\n"
     system += f"Given these CAPEC attack patterns,\n{capec_attack_patterns}\n\n"
-    user = 'Understand the threat model(s) from the given Use Case Scenario Title and Use Case Scenario Description. From your understanding of the threat model and CAPEC attack patterns, find CAPEC attack pattern(s) that have high relevance and high match with the threat model(s) with above 90%% confidence only. Also, for the found and matched attack pattern(s), give an explanation and confidence score as to why the attack pattern is found and matched. Output this in a JSON array of JSON objects, the JSON object must follow in this format, {"content": [{"capec_id":"", "explanation":"", "confidence":""}]}.'
+    user = 'From your understanding of the Use Case Scenario Title and Use Case Scenario Description and CAPEC attack patterns, find CAPEC attack pattern(s) that have high relevance and high match with the threat model(s) with above 95%% confidence only. Also, for the found and matched attack pattern(s), give an explanation and confidence score as to why the attack pattern is found and matched. Output this in a JSON array of top 2 JSON objects based on confidence score, the JSON object must follow in this format, {"content": [{"capec_id":"", "explanation":"", "confidence":""}]}.'
 
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo-16k",
@@ -301,7 +301,7 @@ def find_oran_components_related_attacks_llm(use_case_scenario_title, use_case_s
     system += f"Given this Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
     system += f"Given this Use Case Scenario Description,\n{use_case_scenario_description}\n\n"
     system += f"Given these OpenRAN attack patterns,\n{oran_components_attack_patterns}\n\n"
-    user = 'Understand the threat model(s) from the given Use Case Scenario Title and Use Case Scenario Description. From your understanding of the threat model and OpenRAN attack patterns, find OpenRAN attack pattern(s) that have high relevance and high match with the threat model(s) with above 90%% confidence only. Also, for the found and matched attack pattern(s), give an explanation and confidence score as to why the attack pattern is found and matched. Output this in a JSON array of JSON objects, the JSON object must follow in this format, {"content": [{"threat_id":"", "explanation":"", "confidence":""}]}.'
+    user = 'From your understanding of the Use Case Scenario Title and Use Case Scenario Description and OpenRAN attack patterns, find OpenRAN attack pattern(s) that have high relevance and high match with the threat model(s) with above 95%% confidence only. Also, for the found and matched attack pattern(s), give an explanation and confidence score as to why the attack pattern is found and matched. Output this in a JSON array  of top 2 JSON objects based on confidence score, the JSON object must follow in this format, {"content": [{"threat_id":"", "explanation":"", "confidence":""}]}.'
 
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo-16k",
@@ -351,7 +351,7 @@ def find_oran_near_rt_ric_related_attacks_llm(use_case_scenario_title, use_case_
     system += f"Given this Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
     system += f"Given this Use Case Scenario Description,\n{use_case_scenario_description}\n\n"
     system += f"Given these OpenRAN Near-RT RIC attack patterns,\n{oran_near_rt_ric_attack_patterns}\n\n"
-    user = 'Understand the threat model(s) from the given Use Case Scenario Title and Use Case Scenario Description. From your understanding of the threat model and OpenRAN Near-RT RIC attack patterns, find OpenRAN Near-RT RIC attack pattern(s) that have high relevance and high match with the threat model(s) with above 90%% confidence only. Also, for the found and matched attack pattern(s), give an explanation and confidence score as to why the attack pattern is found and matched. Output this in a JSON array of JSON objects, the JSON object must follow in this format, {"content": [{"threat_id":"", "explanation":"", "confidence":""}]}.'
+    user = 'From your understanding of the Use Case Scenario Title and Use Case Scenario Description and OpenRAN Near-RT RIC attack patterns, find OpenRAN Near-RT RIC attack pattern(s) that have high relevance and high match with the threat model(s) with above 95%% confidence only. Also, for the found and matched attack pattern(s), give an explanation and confidence score as to why the attack pattern is found and matched. Output this in a JSON array of top 2 JSON objects based on confidence score, the JSON object must follow in this format, {"content": [{"threat_id":"", "explanation":"", "confidence":""}]}.'
 
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo-16k",
@@ -408,7 +408,7 @@ def find_oran_security_analysis_related_attacks_llm(use_case_scenario_title, use
     system += f"Given this Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
     system += f"Given this Use Case Scenario Description,\n{use_case_scenario_description}\n\n"
     system += f"Given these OpenRAN Near-RT RIC and xApps attack patterns,\n{oran_security_analysis_attack_patterns}\n\n"
-    user = 'Understand the threat model(s) from the given Use Case Scenario Title and Use Case Scenario Description. From your understanding of the threat model and OpenRAN Near-RT RIC and xApps attack patterns, find OpenRAN Near-RT RIC and xApps attack pattern(s) that have high relevance and high match with the threat model(s) with above 90%% confidence only. Also, for the found and matched attack pattern(s), give an explanation and confidence score as to why the attack pattern is found and matched. Output this in a JSON array of JSON objects, the JSON object must follow in this format, {"content": [{"threat_id":"", "explanation":"", "confidence":""}]}.'
+    user = 'From your understanding of the Use Case Scenario Title and Use Case Scenario Description and OpenRAN Near-RT RIC and xApps attack patterns, find OpenRAN Near-RT RIC and xApps attack pattern(s) that have high relevance and high match with the threat model(s) with above 95%% confidence only. Also, for the found and matched attack pattern(s), give an explanation and confidence score as to why the attack pattern is found and matched. Output this in a JSON array of top 2 JSON objects based on confidence score, the JSON object must follow in this format, {"content": [{"threat_id":"", "explanation":"", "confidence":""}]}.'
 
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo-16k",
@@ -431,28 +431,28 @@ def find_weaknesses_and_countermeasures(found_CAPEC_attacks):
     ASVSs_matched = set()
     for found_CAPEC_attack in found_CAPEC_attacks:
         capec_id = dict(found_CAPEC_attack)["capec_id"]
-        if CAPEC[capec_id]:
+        if capec_id in CAPEC.keys():
             related_weaknesses = CAPEC[capec_id]["related_weaknesses"]
             if related_weaknesses:
                 for related_weakness in related_weaknesses:
                     if CWE[related_weakness]:
                         CWEs_matched.add(related_weakness)
 
-    parent_child_matched_CWEs = set()
     # find related CWEs by matched CWEs
-    for CWE_matched in CWEs_matched:
-        if CWE[CWE_matched]:
-            parents_relation_to = CWE[CWE_matched]["parent_relation_to"]
-            for parent in parents_relation_to:
-                if CWE[parent]:
-                    parent_child_matched_CWEs.add(parent)
+    # parent_child_matched_CWEs = set()
+    # for CWE_matched in CWEs_matched:
+    #     if CWE[CWE_matched]:
+    #         parents_relation_to = CWE[CWE_matched]["parent_relation_to"]
+    #         for parent in parents_relation_to:
+    #             if CWE[parent]:
+    #                 parent_child_matched_CWEs.add(parent)
             
-            children_relation_to = CWE[CWE_matched]["child_relation_to"]
-            for child in children_relation_to:
-                if CWE[child]:
-                    parent_child_matched_CWEs.add(child)
+    #         children_relation_to = CWE[CWE_matched]["child_relation_to"]
+    #         for child in children_relation_to:
+    #             if CWE[child]:
+    #                 parent_child_matched_CWEs.add(child)
 
-    CWEs_matched = CWEs_matched.union(parent_child_matched_CWEs)
+    # CWEs_matched = CWEs_matched.union(parent_child_matched_CWEs)
 
     for CWE_matched in CWEs_matched:
         for ASVS_item_key, ASVS_item_val in ASVS.items():
@@ -466,9 +466,11 @@ def gen_prompt(
     use_case_scenario_title,
     CAPEC,
     CWE,
+    ASVS,
     SWG_O_RAN_Components_Threat_Model,
     SWG_O_RAN_Near_RT_RIC_Components_Threat_Model,
     SWG_Security_Analysis_for_Near_RT_RIC_and_xApps,
+    SWG_Security_Analysis_for_Near_RT_RIC_and_xApps_mitigations,
     Examples_Misuse_Case_Scenario,
 ):
     NONE = "None"
@@ -476,13 +478,17 @@ def gen_prompt(
     system += f"Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
     system += f"Use Case Scenario in Gherkin language syntax,\n{use_case_scenario}\n\n"
     system += f"CAPEC,\n{CAPEC}\n\n"
-    system += f"CWEs,\n{CWE}\n\n"
+    system += f"CWE mitigations or solutions,\n{CWE}\n\n"
+    system += f"ASVS mitigations or solutions,\n{ASVS}\n\n"
     system += f"SWG O-RAN Components Threat Model,\n{SWG_O_RAN_Components_Threat_Model if SWG_O_RAN_Components_Threat_Model else NONE}\n\n"
     system += f"SWG O-RAN Near-RT RIC Component Threat Model,\n{SWG_O_RAN_Near_RT_RIC_Components_Threat_Model if SWG_O_RAN_Near_RT_RIC_Components_Threat_Model else NONE}\n\n"
     system += f"SWG Security Analysis for Near-RT RIC and xApps,\n{SWG_Security_Analysis_for_Near_RT_RIC_and_xApps if SWG_Security_Analysis_for_Near_RT_RIC_and_xApps else NONE}\n\n"
+    system += f"SWG Security Analysis for Near-RT RIC and xApps mitigations or solutions,\n{SWG_Security_Analysis_for_Near_RT_RIC_and_xApps_mitigations}\n\n"
+    system += "Purpose of Misuse Case Scenario?\n- provides additional information about the potential threats and security controls that security engineers or researchers can use to counter those threats. \n\n"
+    system += "How to construct a Misuse Case Scenario in Gherkin language syntax?\n- provide additional information about the potential threats and security controls that security engineers or researchers can use to counter those threats. \n- For constructing the When statement, use the threat patterns from CAPEC, SWG O-RAN Components Threat Model, SWG O-RAN Near-RT RIC Component Threat Model and SWG Security Analysis for Near-RT RIC and xApps. \n- For constructing the Then statement, use the mitigations or solutions from CWE mitigations or solutions, ASVS mitigations or solutions, SWG Security Analysis for Near-RT RIC and xApps mitigations or solutions. \n\n"
     system += f"Examples of Misuse Case Scenario in Gherkin language syntax,\n{Examples_Misuse_Case_Scenario if Examples_Misuse_Case_Scenario else NONE}\n\n"
-    user = 'From your understanding of the given examples of Misuse Case Scenario, construct best 5 unique Misuse Case Scenarios in Gherkin language syntax from above Use Case Scenario, CAPEC, CWEs, SWG O-RAN Components Threat Model (if not none), SWG O-RAN Near-RT RIC Component Threat Model (if not none) and SWG Security Analysis for Near-RT RIC and xApps (if not none). Output this in a JSON array of objects, the object must follow in this format, {"misuse_case_scenario":""}.'
-    return system, user, system
+    user = 'From your understanding of how to construct a Misuse Case Scenario and the given examples of Misuse Case Scenario, propose best 5 unique Misuse Case Scenarios in Gherkin language syntax from above Use Case Scenario, CAPEC, CWEs, SWG O-RAN Components Threat Model (if not none), SWG O-RAN Near-RT RIC Component Threat Model (if not none) and SWG Security Analysis for Near-RT RIC and xApps (if not none). Output this in a JSON array of objects, the object must follow in this format, {"misuse_case_scenario":""}. The misuse case scenarios proposed should not be exactly the same as the use case scenario.'
+    return system, user, system+user
 
 
 # Initial page config
@@ -790,6 +796,13 @@ def cs_body():
                     CWE_description = CWE[CWE_matched]["description"]
                     CWE_prompt += f"{CWE_id}: {CWE_type}. {CWE_description}\n"
 
+                ASVS_prompt = ""
+                for ASVS_matched in ASVSs_matched:
+                    ASVS_id = ASVS[ASVS_matched]["asvs_id"]
+                    ASVS_type = ASVS[ASVS_matched]["type"]
+                    ASVS_description = ASVS[ASVS_matched]["description"]
+                    ASVS_prompt += f"{ASVS_id}: {ASVS_type}. {ASVS_description}\n"
+
                 ORAN_COMPONENTS_prompt = ""
                 for oran_components_atk_pattern in ORAN_COMPONENTS:
                     for related_attack in oran_components_related_attacks:
@@ -805,12 +818,15 @@ def cs_body():
                     ORAN_NEARRT_RIC_prompt += f"Title: {TITLE} Description: {DESCRIPTION}\n"
 
                 ORAN_SECURITY_ANALYSIS_prompt = ""
+                ORAN_SECURITY_ANALYSIS_SECURITY_REQS_prompt = ""
                 for oran_security_analysis_related_attack in oran_security_analysis_related_attacks:
                     related_oran_security_analysis_id = dict(oran_security_analysis_related_attack)["threat_id"]
                     TITLE = ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["key_issue_title"]
                     DESCRIPTION = ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["key_issue_detail"]
-                    SECURITY_THREATS = ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["security_threats"]
+                    SECURITY_THREATS = ", ".join(ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["security_threats"])
+                    SECURITY_REQUIREMENTS = ", ".join(ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["potential_security_requirements"])
                     ORAN_SECURITY_ANALYSIS_prompt += f"Title: {TITLE} Description: {DESCRIPTION} Security Threats: {SECURITY_THREATS}\n"
+                    ORAN_SECURITY_ANALYSIS_SECURITY_REQS_prompt += f"Security Mitigations or Solutions: {SECURITY_REQUIREMENTS}\n"
 
                 Examples_Misuse_Case_Scenario = ""
                 for index in range(len(MCS)):
@@ -821,9 +837,11 @@ def cs_body():
                     st.session_state.ucstitle,
                     CAPEC_prompt,
                     CWE_prompt,
+                    ASVS_prompt,
                     ORAN_COMPONENTS_prompt,
                     ORAN_NEARRT_RIC_prompt,
                     ORAN_SECURITY_ANALYSIS_prompt,
+                    ORAN_SECURITY_ANALYSIS_SECURITY_REQS_prompt,
                     Examples_Misuse_Case_Scenario,
                 )
 
@@ -831,13 +849,13 @@ def cs_body():
 
                 option = st.selectbox(
                     'Which Generative AI LLM Model?',
-                    ('gpt-3.5-turbo', 'gpt-3.5-turbo-16k')
+                    ('gpt-3.5-turbo', 'gpt-3.5-turbo-16k', 'gpt-4')
                 )
 
                 if system and user and prompt and option:
                     with st.spinner("Getting LLM generated Misuse Case Scenarios"):
                         completion = openai.ChatCompletion.create(
-                            model="gpt-3.5-turbo",
+                            model=option,
                             messages=[
                                 {"role": "system", "content": system},
                                 {"role": "user", "content": user}
@@ -845,9 +863,9 @@ def cs_body():
                             temperature=0
                         )
 
-                        llm_contents = json.loads(completion.choices[0].message["content"])
-                        for llm_content_index in range(len(llm_contents)):
-                            st.text_area(label=f"llm_completion_{llm_content_index+1}", height=150, value=llm_contents[llm_content_index]["misuse_case_scenario"], disabled=True)
+                        gen_llm_contents = json.loads(completion.choices[0].message["content"])
+                        for llm_content_index in range(len(gen_llm_contents)):
+                            st.text_area(label=f"llm_completion_{llm_content_index+1}", height=150, value=gen_llm_contents[llm_content_index]["misuse_case_scenario"], disabled=True)
 
 
 def main():

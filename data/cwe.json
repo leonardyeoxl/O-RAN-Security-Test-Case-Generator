@@ -97,5 +97,208 @@
             "input validation failure",
             "invalid input processing"
         ]  
+    },
+    "CWE-1242": {
+        "cwe_id": "CWE-1242",
+        "type": "Inclusion of Undocumented Features or Chicken Bits",
+        "description": "The device includes chicken bits or undocumented features that can create entry points for unauthorized actors. A common design practice is to use undocumented bits on a device that can be used to disable certain functional security features. These bits are commonly referred to as 'chicken bits'. They can facilitate quick identification and isolation of faulty components, features that negatively affect performance, or features that do not provide the required controllability for debug and test. Another way to achieve this is through implementation of undocumented features. An attacker might exploit these interfaces for unauthorized access. ",
+        "child_relation_to": ["CWE-284"],
+        "parent_relation_to": []
+    },
+    "CWE-1246": {
+        "cwe_id": "CWE-1246",
+        "type": "Improper Write Handling in Limited-write Non-Volatile Memories",
+        "description": "The product does not implement or incorrectly implements wear leveling operations in limited-write non-volatile memories. Non-volatile memories such as NAND Flash, EEPROM, etc. have individually erasable segments, each of which can be put through a limited number of program/erase or write cycles. For example, the device can only endure a limited number of writes, after which the device becomes unreliable. In order to wear out the cells in a uniform manner, non-volatile memory and storage products based on the above-mentioned technologies implement a technique called wear leveling. Once a set threshold is reached, wear leveling maps writes of a logical block to a different physical block. This prevents a single physical block from prematurely failing due to a high concentration of writes. If wear leveling is improperly implemented, attackers may be able to programmatically cause the storage to become unreliable within a much shorter time than would normally be expected. ",
+        "child_relation_to": ["CWE-400"],
+        "parent_relation_to": []
+    },
+    "CWE-1281": {
+        "cwe_id": "CWE-1281",
+        "type": "Sequence of Processor Instructions Leads to Unexpected Behavior",
+        "description": "Specific combinations of processor instructions lead to undesirable behavior such as locking the processor until a hard reset performed. If the instruction set architecture (ISA) and processor logic are not designed carefully and tested thoroughly, certain combinations of instructions may lead to locking the processor or other unexpected and undesirable behavior. Upon encountering unimplemented instruction opcodes or illegal instruction operands, the processor should throw an exception and carry on without negatively impacting security. However, specific combinations of legal and illegal instructions may cause unexpected behavior with security implications such as allowing unprivileged programs to completely lock the CPU. ",
+        "child_relation_to": [],
+        "parent_relation_to": ["CWE-691"]
+    },
+    "CWE-353": {
+        "cwe_id": "CWE-353",
+        "type": "Missing Support for Integrity Check",
+        "description": "The product uses a transmission protocol that does not include a mechanism for verifying the integrity of the data during transmission, such as a checksum. If integrity check values or 'checksums' are omitted from a protocol, there is no way of determining if data has been corrupted in transmission. The lack of checksum functionality in a protocol removes the first application-level check of data that can be used. The end-to-end philosophy of checks states that integrity checks should be performed at the lowest level that they can be completely implemented. Excluding further sanity checks and input validation performed by applications, the protocol's checksum is the most important level of checksum, since it can be performed more completely than at any previous level and takes into account entire messages, as opposed to single packets. ",
+        "child_relation_to": ["CWE-345", "CWE-354"],
+        "parent_relation_to": []
+    },
+    "CWE-302": {
+        "cwe_id": "CWE-302",
+        "type": "Authentication Bypass by Assumed-Immutable Data",
+        "description": "The authentication scheme or implementation uses key data elements that are assumed to be immutable, but can be controlled or modified by the attacker.",
+        "child_relation_to": ["CWE-807", "CWE-1390"],
+        "parent_relation_to": []
+    },
+    "CWE-74": {
+        "cwe_id": "CWE-74",
+        "type": "Improper Neutralization of Special Elements in Output Used by a Downstream Component ('Injection')",
+        "description": "The product constructs all or part of a command, data structure, or record using externally-influenced input from an upstream component, but it does not neutralize or incorrectly neutralizes special elements that could modify how it is parsed or interpreted when it is sent to a downstream component. Software or other automated logic has certain assumptions about what constitutes data and control respectively. It is the lack of verification of these assumptions for user-controlled input that leads to injection problems. Injection problems encompass a wide variety of issues -- all mitigated in very different ways and usually attempted in order to alter the control flow of the process. For this reason, the most effective way to discuss these weaknesses is to note the distinct features that classify them as injection weaknesses. The most important issue to note is that all injection problems share one thing in common -- i.e., they allow for the injection of control plane data into the user-controlled data plane. This means that the execution of the process may be altered by sending code in through legitimate data channels, using no other mechanism. While buffer overflows, and many other flaws, involve the use of some further issue to gain execution, injection problems need only for the data to be parsed. ",
+        "child_relation_to": ["CWE-707"],
+        "parent_relation_to": ["CWE-75", "CWE-77", "CWE-79", "CWE-91", "CWE-93", "CWE-94", "CWE-99", "CWE-948", "CWE-1236"]
+    },
+    "CWE-15": {
+        "cwe_id": "CWE-15",
+        "type": "External Control of System or Configuration Setting",
+        "description": "One or more system settings or configuration elements can be externally controlled by a user. Allowing external control of system settings can disrupt service or cause an application to behave in unexpected, and potentially malicious ways. ",
+        "child_relation_to": ["CWE-610", "CWE-642"],
+        "parent_relation_to": []
+    },
+    "CWE-73": {
+        "cwe_id": "CWE-73",
+        "type": "External Control of File Name or Path",
+        "description": "The product allows user input to control or influence paths or file names that are used in filesystem operations. This could allow an attacker to access or modify system files or other files that are critical to the application. Path manipulation errors occur when the following two conditions are met: 1. An attacker can specify a path used in an operation on the filesystem. 2. By specifying the resource, the attacker gains a capability that would not otherwise be permitted. For example, the program may give the attacker the ability to overwrite the specified file or run with a configuration controlled by the attacker. ",
+        "child_relation_to": ["CWE-610", "CWE-642"],
+        "parent_relation_to": ["CWE-114"]
+    },
+    "CWE-200": {
+        "cwe_id": "CWE-200",
+        "type": "Exposure of Sensitive Information to an Unauthorized Actor",
+        "description": "The product exposes sensitive information to an actor that is not explicitly authorized to have access to that information. There are many different kinds of mistakes that introduce information exposures. The severity of the error can range widely, depending on the context in which the product operates, the type of sensitive information that is revealed, and the benefits it may provide to an attacker. Some kinds of sensitive information include:     private, personal information, such as personal messages, financial data, health records, geographic location, or contact details system status and environment, such as the operating system and installed packages business secrets and intellectual property network status and configuration the product's own code or internal state metadata, e.g. logging of connections or message headers indirect information, such as a discrepancy between two internal operations that can be observed by an outsider. Information might be sensitive to different parties, each of which may have their own expectations for whether the information should be protected. These parties include:      the product's own users people or organizations whose information is created or used by the product, even if they are not direct product users the product's administrators, including the admins of the system(s) and/or networks on which the product operates, the developer. Information exposures can occur in different ways: the code explicitly inserts sensitive information into resources or messages that are intentionally made accessible to unauthorized actors, but should not contain the information - i.e., the information should have been 'scrubbed' or 'sanitized',a different weakness or mistake indirectly inserts the sensitive information into resources, such as a web script error revealing the full system path of the program, the code manages resources that intentionally contain sensitive information, but the resources are unintentionally made accessible to unauthorized actors. In this case, the information exposure is resultant - i.e., a different weakness enabled the access to the information in the first place.",
+        "child_relation_to": ["CWE-668"],
+        "parent_relation_to": ["CWE-201", "CWE-203", "CWE-209", "CWE-213", "CWE-215", "CWE-359", "CWE-497", "CWE-538", "CWE-1258", "CWE-1273", "CWE-1295"]
+    },
+    "CWE-290": {
+        "cwe_id": "CWE-290",
+        "type": "Authentication Bypass by Spoofing",
+        "description": "This attack-focused weakness is caused by incorrectly implemented authentication schemes that are subject to spoofing attacks. ",
+        "child_relation_to": ["CWE-1390"],
+        "parent_relation_to": ["CWE-291", "CWE-293", "CWE-350"]
+    },
+    "CWE-287": {
+        "cwe_id": "CWE-287",
+        "type": "Improper Authentication",
+        "description": "When an actor claims to have a given identity, the product does not prove or insufficiently proves that the claim is correct. ",
+        "child_relation_to": ["CWE-284"],
+        "parent_relation_to": ["CWE-295", "CWE-306", "CWE-645", "CWE-1390"]
+    },
+    "CWE-693": {
+        "cwe_id": "CWE-693",
+        "type": "Protection Mechanism Failure",
+        "description": "The product does not use or incorrectly uses a protection mechanism that provides sufficient defense against directed attacks against the product. This weakness covers three distinct situations. A 'missing' protection mechanism occurs when the application does not define any mechanism against a certain class of attack. An 'insufficient' protection mechanism might provide some defenses - for example, against the most common attacks - but it does not protect against everything that is intended. Finally, an 'ignored' mechanism occurs when a mechanism is available and in active use within the product, but the developer has not applied it in some code path. ",
+        "child_relation_to": [],
+        "parent_relation_to": []
+    },
+    "CWE-472": {
+        "cwe_id": "CWE-472",
+        "type": "External Control of Assumed-Immutable Web Parameter",
+        "description": "The web application does not sufficiently verify inputs that are assumed to be immutable but are actually externally controllable, such as hidden form fields. If a web product does not properly protect assumed-immutable values from modification in hidden form fields, parameters, cookies, or URLs, this can lead to modification of critical data. Web applications often mistakenly make the assumption that data passed to the client in hidden fields or cookies is not susceptible to tampering. Improper validation of data that are user-controllable can lead to the application processing incorrect, and often malicious, input. For example, custom cookies commonly store session data or persistent data across sessions. This kind of session data is normally involved in security related decisions on the server side, such as user authentication and access control. Thus, the cookies might contain sensitive data such as user credentials and privileges. This is a dangerous practice, as it can often lead to improper reliance on the value of the client-provided cookie by the server side application. ",
+        "child_relation_to": ["CWE-471", "CWE-642"],
+        "parent_relation_to": []
+    },
+    "CWE-565": {
+        "cwe_id": "CWE-565",
+        "type": "Reliance on Cookies without Validation and Integrity Checking",
+        "description": "The product relies on the existence or values of cookies when performing security-critical operations, but it does not properly ensure that the setting is valid for the associated user. Attackers can easily modify cookies, within the browser or by implementing the client-side code outside of the browser. Reliance on cookies without detailed validation and integrity checking can allow attackers to bypass authentication, conduct injection attacks such as SQL injection and cross-site scripting, or otherwise modify inputs in unexpected ways.",
+        "child_relation_to": ["CWE-602", "CWE-642"],
+        "parent_relation_to": []
+    },
+    "CWE-315": {
+        "cwe_id": "CWE-315",
+        "type": "Cleartext Storage of Sensitive Information in a Cookie",
+        "description": "The product stores sensitive information in cleartext in a cookie. Attackers can use widely-available tools to view the cookie and read the sensitive information. Even if the information is encoded in a way that is not human-readable, certain techniques could determine which encoding is being used, then decode the information. ",
+        "child_relation_to": ["CWE-312"],
+        "parent_relation_to": []
+    },
+    "CWE-539": {
+        "cwe_id": "CWE-539",
+        "type": "Use of Persistent Cookies Containing Sensitive Information",
+        "description": "The web application uses persistent cookies, but the cookies contain sensitive information. Cookies are small bits of data that are sent by the web application but stored locally in the browser. This lets the application use the cookie to pass information between pages and store variable information. The web application controls what information is stored in a cookie and how it is used. Typical types of information stored in cookies are session identifiers, personalization and customization information, and in rare cases even usernames to enable automated logins. There are two different types of cookies: session cookies and persistent cookies. Session cookies just live in the browser's memory and are not stored anywhere, but persistent cookies are stored on the browser's hard drive. This can cause security and privacy issues depending on the information stored in the cookie and how it is accessed.",
+        "child_relation_to": ["CWE-552"],
+        "parent_relation_to": []
+    },
+    "CWE-384": {
+        "cwe_id": "CWE-384",
+        "type": "Session Fixation",
+        "description": "Authenticating a user, or otherwise establishing a new user session, without invalidating any existing session identifier gives an attacker the opportunity to steal authenticated sessions. Such a scenario is commonly observed when: A web application authenticates a user without first invalidating the existing session, thereby continuing to use the session already associated with the user, An attacker is able to force a known session identifier on a user so that, once the user authenticates, the attacker has access to the authenticated session, The application or container uses predictable session identifiers. In the generic exploit of session fixation vulnerabilities, an attacker creates a new session on a web application and records the associated session identifier. The attacker then causes the victim to associate, and possibly authenticate, against the server using that session identifier, giving the attacker access to the user's account through the active session",
+        "child_relation_to": ["CWE-610"],
+        "parent_relation_to": []
+    },
+    "CWE-233": {
+        "cwe_id": "CWE-233",
+        "type": "Improper Handling of Parameters",
+        "description": "The product does not properly handle when the expected number of parameters, fields, or arguments is not provided in input, or if those parameters are undefined. ",
+        "child_relation_to": ["CWE-228"],
+        "parent_relation_to": ["CWE-234", "CWE-235", "CWE-236"]
+    },
+    "CWE-94": {
+        "cwe_id": "CWE-94",
+        "type": "Improper Control of Generation of Code ('Code Injection')",
+        "description": "The product constructs all or part of a code segment using externally-influenced input from an upstream component, but it does not neutralize or incorrectly neutralizes special elements that could modify the syntax or behavior of the intended code segment. When a product allows a user's input to contain code syntax, it might be possible for an attacker to craft the code in such a way that it will alter the intended control flow of the product. Such an alteration could lead to arbitrary code execution. Injection problems encompass a wide variety of issues -- all mitigated in very different ways. For this reason, the most effective way to discuss these weaknesses is to note the distinct features which classify them as injection weaknesses. The most important issue to note is that all injection problems share one thing in common -- i.e., they allow for the injection of control plane data into the user-controlled data plane. This means that the execution of the process may be altered by sending code in through legitimate data channels, using no other mechanism. While buffer overflows, and many other flaws, involve the use of some further issue to gain execution, injection problems need only for the data to be parsed. The most classic instantiations of this category of weakness are SQL injection and format string vulnerabilities. ",
+        "child_relation_to": ["CWE-913", "CWE-74"],
+        "parent_relation_to": ["CWE-95", "CWE-96", "CWE-1336"]
+    },
+    "CWE-96": {
+        "cwe_id": "CWE-96",
+        "type": "Improper Neutralization of Directives in Statically Saved Code ('Static Code Injection')",
+        "description": "The product receives input from an upstream component, but it does not neutralize or incorrectly neutralizes code syntax before inserting the input into an executable resource, such as a library, configuration file, or template. ",
+        "child_relation_to": ["CWE-94"],
+        "parent_relation_to": ["CWE-97"]
+    },
+    "CWE-473": {
+        "cwe_id": "CWE-473",
+        "type": "",
+        "description": "",
+        "child_relation_to": [],
+        "parent_relation_to": []
+    },
+    "CWE-1321": {
+        "cwe_id": "CWE-1321",
+        "type": "Improperly Controlled Modification of Object Prototype Attributes ('Prototype Pollution')",
+        "description": "The product receives input from an upstream component that specifies attributes that are to be initialized or updated in an object, but it does not properly control modifications of attributes of the object prototype. By adding or modifying attributes of an object prototype, it is possible to create attributes that exist on every object, or replace critical attributes with malicious ones. This can be problematic if the product depends on existence or non-existence of certain attributes, or uses pre-defined attributes of object prototype (such as hasOwnProperty, toString or valueOf). This weakness is usually exploited by using a special attribute of objects called proto, constructor or prototype. Such attributes give access to the object prototype. This weakness is often found in code that assigns object attributes based on user input, or merges or clones objects recursively. ",
+        "child_relation_to": ["CWE-915"],
+        "parent_relation_to": []
+    },
+    "CWE-602": {
+        "cwe_id": "CWE-602",
+        "type": "Client-Side Enforcement of Server-Side Security",
+        "description": "The product is composed of a server that relies on the client to implement a mechanism that is intended to protect the server. When the server relies on protection mechanisms placed on the client side, an attacker can modify the client-side behavior to bypass the protection mechanisms, resulting in potentially unexpected interactions between the client and server. The consequences will vary, depending on what the mechanisms are trying to protect. ",
+        "child_relation_to": ["CWE-693"],
+        "parent_relation_to": ["CWE-565", "CWE-603"]
+    },
+    "CWE-425": {
+        "cwe_id": "CWE-425",
+        "type": "Direct Request ('Forced Browsing')",
+        "description": "The web application does not adequately enforce appropriate authorization on all restricted URLs, scripts, or files. Web applications susceptible to direct request attacks often make the false assumption that such resources can only be reached through a given navigation path and so only apply authorization at certain points in the path. ",
+        "child_relation_to": ["CWE-288", "CWE-424", "CWE-862"],
+        "parent_relation_to": []
+    },
+    "CWE-682": {
+        "cwe_id": "CWE-682",
+        "type": "Incorrect Calculation",
+        "description": "The product performs a calculation that generates incorrect or unintended results that are later used in security-critical decisions or resource management. When product performs a security-critical calculation incorrectly, it might lead to incorrect resource allocations, incorrect privilege assignments, or failed comparisons among other things. Many of the direct results of an incorrect calculation can lead to even larger problems such as failed protection mechanisms or even arbitrary code execution. ",
+        "child_relation_to": [],
+        "parent_relation_to": ["CWE-128", "CWE-131", "CWE-135", "CWE-190", "CWE-191", "CWE-193", "CWE-369", "CWE-468", "CWE-469", "CWE-1335", "CWE-1339"]
+    },
+    "CWE-1244": {
+        "cwe_id": "CWE-1244",
+        "type": "Internal Asset Exposed to Unsafe Debug Access Level or State",
+        "description": "The product uses physical debug or test interfaces with support for multiple access levels, but it assigns the wrong debug access level to an internal asset, providing unintended access to the asset from untrusted debug agents. Debug authorization can have multiple levels of access, defined such that different system internal assets are accessible based on the current authorized debug level. Other than debugger authentication (e.g., using passwords or challenges), the authorization can also be based on the system state or boot stage. For example, full system debug access might only be allowed early in boot after a system reset to ensure that previous session data is not accessible to the authenticated debugger. If this protection mechanism does not ensure that internal assets have the correct debug access level during each boot stage or change in system state, an attacker could obtain sensitive information from the internal asset using a debugger. ",
+        "child_relation_to": [],
+        "parent_relation_to": []
+    },
+    "CWE-732": {
+        "cwe_id": "CWE-732",
+        "type": "Incorrect Permission Assignment for Critical Resource",
+        "description": "The product specifies permissions for a security-critical resource in a way that allows that resource to be read or modified by unintended actors. When a resource is given a permission setting that provides access to a wider range of actors than required, it could lead to the exposure of sensitive information, or the modification of that resource by unintended parties. This is especially dangerous when the resource is related to program configuration, execution, or sensitive user data. For example, consider a misconfigured storage account for the cloud that can be read or written by a public or anonymous user. ",
+        "child_relation_to": [],
+        "parent_relation_to": []
+    },
+    "CWE-276": {
+        "cwe_id": "CWE-276",
+        "type": "Incorrect Default Permissions",
+        "description": "During installation, installed file permissions are set to allow anyone to modify those files. ",
+        "child_relation_to": [],
+        "parent_relation_to": []
+    },
+    "CWE-434": {
+        "cwe_id": "CWE-434",
+        "type": "Unrestricted Upload of File with Dangerous Type",
+        "description": "The product allows the attacker to upload or transfer files of dangerous types that can be automatically processed within the product's environment. ",
+        "child_relation_to": [],
+        "parent_relation_to": []
     }
 }

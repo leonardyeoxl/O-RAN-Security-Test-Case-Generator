@@ -213,5 +213,189 @@
         "parent_relation": ["CAPEC-58", "CAPEC-679", "CAPEC-680", "CAPEC-681"],
         "related_weaknesses": ["CWE-276", "CWE-1190", "CWE-434", "CWE-693", "CWE-732", "CWE-1191", "CWE-1193", "CWE-1220", "CWE-1297", "CWE-1311", "CWE-1314", "CWE-1315", "CWE-1318", "CWE-1320", "CWE-1321", "CWE-1327"],
         "tags": []
+    },
+    "CAPEC-90": {
+        "capec_id": "CAPEC-90",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-461": {
+        "capec_id": "CAPEC-461",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-480": {
+        "capec_id": "CAPEC-480",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-664": {
+        "capec_id": "CAPEC-664",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-668": {
+        "capec_id": "CAPEC-668",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-732": {
+        "capec_id": "CAPEC-732",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-1190": {
+        "capec_id": "CAPEC-1190",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-1193": {
+        "capec_id": "CAPEC-1193",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-1220": {
+        "capec_id": "CAPEC-1220",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-1268": {
+        "capec_id": "CAPEC-1268",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-1280": {
+        "capec_id": "CAPEC-1280",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-1297": {
+        "capec_id": "CAPEC-1297",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-1311": {
+        "capec_id": "CAPEC-1311",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-1315": {
+        "capec_id": "CAPEC-1315",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-1318": {
+        "capec_id": "CAPEC-1318",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-1320": {
+        "capec_id": "CAPEC-1320",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-1321": {
+        "capec_id": "CAPEC-1321",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-122": {
+        "capec_id": "CAPEC-122",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-58": {
+        "capec_id": "CAPEC-58",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-679": {
+        "capec_id": "CAPEC-679",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-680": {
+        "capec_id": "CAPEC-680",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-681": {
+        "capec_id": "CAPEC-681",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
+    },
+    "CAPEC-702": {
+        "capec_id": "CAPEC-702",
+        "type": "",
+        "mitigations": "",
+        "child_relation": [],
+        "parent_relation": [],
+        "tags": []
     }
 }

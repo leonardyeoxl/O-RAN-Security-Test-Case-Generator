@@ -27,6 +27,27 @@ Then the listener xApp receive the message
 ```
 
 ### Example Use Case Scenario Title
+`Newly registered and subscribed xApp to access resources from target xApp`
+### Example Use Case Scenario
+```
+Given a new xApp registers with the Near-RT RIC
+And the new xApp subscribe to the desired RAN stacks through the E2 termination in the near-RT RICs and the E2 agents on the RAN nodes
+And a target xApp is already registered with the Near-RT RIC
+And the target xApp subscribed to the desired RAN stacks through the E2 termination in the near-RT RICs and the E2 agents on the RAN nodes
+When the new xApp wants to access resources from target xApp
+Then target xApp responds with its resources to the new xApp
+```
+
+```
+Given a new xApp registers with the Near-RT RIC without authentication and authorization
+And the new xApp subscribe to the desired RAN stacks through the E2 termination in the near-RT RICs and the E2 agents on the RAN nodes
+And a target xApp is already registered with the Near-RT RIC without authentication and authorization
+And the target xApp subscribed to the desired RAN stacks through the E2 termination in the near-RT RICs and the E2 agents on the RAN nodes
+When the new xApp wants to access resources from target xApp via RMR transmission medium without authentication and authorization 
+Then target xApp responds with its resources to the new xApp
+```
+
+### Example Use Case Scenario Title
 `Login`
 ### Example Use Case Scenario
 ```
