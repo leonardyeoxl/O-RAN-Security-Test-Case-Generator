@@ -183,6 +183,23 @@ def capec_related_attacks_graph(graph):
         height=150,
     )
 
+def application_test_case_to_ucs(app_source_code, use_case_scenario_examples):
+    system = "You are a cyber security testing expert. You are familiar with writing security test cases and C/C++ programming.\n\n"
+    system += f"Given these application source code in C/C++,\n{app_source_code}\n\n"
+    system += f"Given these examples of Use Case Scenario in Gherkin language syntax,\n{use_case_scenario_examples}\n\n"
+    user = 'Understand the test case in C/C++ and examples of Use Case Scenario in Gherkin language syntax, write only 1 Use Case Scenario based on the given application source code in C/C++.'
+
+    completion = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user}
+        ],
+        temperature=0
+    )
+    llm_contents = completion.choices[0].message["content"]
+    return llm_contents
+
 def find_capec_related_attacks(data_assets, near_rt_ric_assets, actions):
     related_attacks = set()
     for capec_key, capec_val in CAPEC.items():
@@ -543,6 +560,9 @@ def run_step2():
 def run_step3():
     st.session_state.step3 = True
 
+def run_step1():
+    st.session_state.step1 = True
+
 def cs_body():
     with st.container():
         if 'step2' not in st.session_state:
@@ -551,35 +571,61 @@ def cs_body():
         if 'step3' not in st.session_state:
             st.session_state.step3 = False
 
+        if 'step1' not in st.session_state:
+            st.session_state.step1 = False
+
+        ucs = None
+
         st.header("1. Build Use Case Scenario Model")
 
-        st.subheader("Step 1: Input Use Case Scenario")
-        st.text_input(
+        st.header("Step 1. Application Source Code")
+
+        app_source_code = st.text_area(
+            "Test Case in Application Source Code",
+            value="",
+            on_change=None,
+            height=350,
+            placeholder="Test Case in Application Source Code here",
+        )
+
+        ucs_from_llm = None
+        if app_source_code:
+            with st.spinner("Getting LLM generated Use Case Scenario"):
+                use_case_scenario_examples = "Example 1:\nGiven a dialer xApp and a listener xApp \nAnd dialer xApp connected to RMR transmission medium successfully \nAnd listener xApp connected to RMR transmission medium successfully \nWhen dialer xApp sends a message to the listener xApp via RMR transmission medium \nThen the listener xApp receive the message\n\n"
+                use_case_scenario_examples += "Example 2:\nGiven a new xApp registers with the Near-RT RIC \nAnd the new xApp subscribe to the desired RAN stacks through the E2 termination in the near-RT RICs and the E2 agents on the RAN nodes \nAnd a target xApp is already registered with the Near-RT RIC \nAnd the target xApp subscribed to the desired RAN stacks through the E2 termination in the near-RT RICs and the E2 agents on the RAN nodes \nWhen the new xApp wants to access resources from target xApp \nThen target xApp responds with its resources to the new xApp\n\n"
+                ucs_from_llm = application_test_case_to_ucs(app_source_code, use_case_scenario_examples)
+
+        st.subheader("Step 2: Review Use Case Scenario")
+        ucstitle = st.text_input(
             "Title",
             value="",
-            key="ucstitle",
             on_change=None,
             placeholder="Use Case Scenario Title here",
         )
-        st.text_area(
+        manual_ucs = st.text_area(
             "Use Case Scenario",
-            value="",
-            key="ucs",
+            value="" if not ucs_from_llm else ucs_from_llm,
             height=350,
             help="use Gherkin language syntax",
             on_change=None,
             placeholder="Use Case Scenario here",
         )
+        
+        if ucs_from_llm:
+            ucs = ucs_from_llm
+        else:
+            ucs = manual_ucs
+        
+        step1_btn = st.button("Generate Use Case Scenario Model", use_container_width=True, on_click=run_step3)
 
-        st.subheader("Step 2: Parts-of-Speech Tagging")
-        ucs = st.session_state.ucs
+        st.subheader("Step 3: Parts-of-Speech Tagging")
         new_ucs = "".join([sentence.strip() + " " for sentence in ucs.split("\n")])
         ents, ent_html = visualize_pos(new_ucs)
         st.markdown(ent_html, unsafe_allow_html=True)
 
-        st.subheader("Step 3: Generate Use Case Scenario Model")
+        st.subheader("Step 4: Generate Use Case Scenario Model")
         selected_seqs = []
-        if ents and new_ucs and ucs:
+        if ents:
             gen_ent_with_word(ents, new_ucs)
             nouns = concat_nouns(ents)
             subject = st.radio(
@@ -617,7 +663,7 @@ def cs_body():
             ucs_graph(
                 f"""
                 graph TD
-                    A({st.session_state.ucstitle})
+                    A({ucstitle})
                     A --> B(Subject: {subject})
                     A --> C(Outcome: {outcome})
                     A --> D(Sequences)
@@ -640,33 +686,33 @@ def cs_body():
                     # oran_near_rt_ric_related_attacks = find_oran_near_rt_ric_related_attacks(data_assets, near_rt_ric_assets, actions)
                     # oran_security_analysis_related_attacks = find_oran_security_analysis_related_attacks(data_assets, near_rt_ric_assets, actions)
 
-                if st.session_state.ucs != "" and st.session_state.ucstitle != "":
+                if ucs != "" and ucstitle != "":
                     capec_attack_patterns = ""
                     for CAPEC_atk_pattern_id, CAPEC_atk_pattern in CAPEC.items():
                         capec_attack_patterns += f"CAPEC id: {CAPEC_atk_pattern_id}: CAPEC Title: {CAPEC_atk_pattern['type']}. CAPEC description: {CAPEC_atk_pattern['description']}\n"
 
-                    capec_related_attacks = find_capec_related_attacks_llm(st.session_state.ucs, st.session_state.ucstitle, capec_attack_patterns)
+                    capec_related_attacks = find_capec_related_attacks_llm(ucs, ucstitle, capec_attack_patterns)
 
-                if st.session_state.ucs != "" and st.session_state.ucstitle != "":
+                if ucs != "" and ucstitle != "":
                     oran_components_attack_patterns = ""
                     for oran_components_atk_pattern in ORAN_COMPONENTS:
                         oran_components_attack_patterns += f"Threat id: {oran_components_atk_pattern['threat_id']}: Threat Title: {oran_components_atk_pattern['threat_title']}. Threat description: {oran_components_atk_pattern['threat_description']}\n"
 
-                    oran_components_related_attacks = find_oran_components_related_attacks_llm(st.session_state.ucs, st.session_state.ucstitle, oran_components_attack_patterns)
+                    oran_components_related_attacks = find_oran_components_related_attacks_llm(ucs, ucstitle, oran_components_attack_patterns)
 
-                if st.session_state.ucs != "" and st.session_state.ucstitle != "":
+                if ucs != "" and ucstitle != "":
                     oran_near_rt_ric_attack_patterns = ""
                     for oran_near_rt_ric_atk_pattern_id, oran_near_rt_ric_atk_pattern in ORAN_NEAR_RT_RIC.items():
                         oran_near_rt_ric_attack_patterns += f"Threat id: {oran_near_rt_ric_atk_pattern_id}: Threat Title: {oran_near_rt_ric_atk_pattern['threat_title']}. Threat description: {oran_near_rt_ric_atk_pattern['threat_description']}\n"
 
-                    oran_near_rt_ric_related_attacks = find_oran_near_rt_ric_related_attacks_llm(st.session_state.ucs, st.session_state.ucstitle, oran_near_rt_ric_attack_patterns)
+                    oran_near_rt_ric_related_attacks = find_oran_near_rt_ric_related_attacks_llm(ucs, ucstitle, oran_near_rt_ric_attack_patterns)
 
-                if st.session_state.ucs != "" and st.session_state.ucstitle != "":
+                if ucs != "" and ucstitle != "":
                     oran_security_analysis_attack_patterns = ""
                     for oran_security_analysis_atk_pattern_title, oran_security_analysis_atk_pattern in ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS.items():
                         oran_security_analysis_attack_patterns += f"Threat Title: {oran_security_analysis_atk_pattern['key_issue_title']}. Threat description: {oran_security_analysis_atk_pattern['key_issue_detail']}. Security threats: {'.'.join(oran_security_analysis_atk_pattern['security_threats'])}\n"
 
-                    oran_security_analysis_related_attacks = find_oran_security_analysis_related_attacks_llm(st.session_state.ucs, st.session_state.ucstitle, oran_security_analysis_attack_patterns)
+                    oran_security_analysis_related_attacks = find_oran_security_analysis_related_attacks_llm(ucs, ucstitle, oran_security_analysis_attack_patterns)
 
                 st.subheader("CAPEC Related Attacks")
                 if capec_related_attacks:
@@ -833,8 +879,8 @@ def cs_body():
                     Examples_Misuse_Case_Scenario += f"Misuse Case Scenario #{index+1}: "+MCS[index]+"\n"
 
                 system, user, prompt = gen_prompt(
-                    st.session_state.ucs,
-                    st.session_state.ucstitle,
+                    ucs,
+                    ucstitle,
                     CAPEC_prompt,
                     CWE_prompt,
                     ASVS_prompt,
