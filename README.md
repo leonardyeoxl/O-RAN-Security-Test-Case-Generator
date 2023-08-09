@@ -300,7 +300,7 @@ int main( int argc, char** argv ) {
 }
 ```
 
-### 
+### Application Code
 ```
 xApp Sender application source code:
 #include <unistd.h>
@@ -471,4 +471,15 @@ int main( int argc, char** argv ) {
 
 	}
 }
+```
+
+### Use Case Scenario generated from Application Code
+```
+Given a sender xApp and a receiver xApp
+And sender xApp is initialized with a specific listen port, message type, and delay
+And receiver xApp is initialized with a specific listen port and stat frequency
+When sender xApp sends a message with a specific payload to the receiver xApp via RMR transmission medium
+Then the receiver xApp receives the message
+And the receiver xApp updates the count of total messages received, errors, and empty messages
+And the receiver xApp prints the total messages received, errors, and empty messages every stat frequency.
 ```
