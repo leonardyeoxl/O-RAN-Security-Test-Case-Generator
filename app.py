@@ -9,6 +9,10 @@ from nltk.tokenize import TreebankWordTokenizer as twt
 import openai
 from dotenv import load_dotenv
 import os
+import csv
+import re
+from itertools import islice
+import time
 
 load_dotenv()  # take environment variables from .env.
 
@@ -19,7 +23,7 @@ nltk.download("universal_tagset")
 
 st.session_state.pos_tags = ["PRON", "VERB", "NOUN", "ADJ", "ADP", "ADV", "CONJ", "DET", "NUM", "PRT"]
 
-st.session_state.NEAR_RT_RIC_ASSETS = ["RMR", "RIC MESSAGE ROUTER", "RMR TRANSMISSION MEDIUM", "TRANSMISSION MEDIUM"]
+st.session_state.NEAR_RT_RIC_ASSETS = ["RMR", "RIC MESSAGE ROUTER", "RMR LIBRARY", "LIBRARY"]
 st.session_state.DATA_ASSETS = ["MESSAGE", "MESSAGES"]
 st.session_state.ASVS = []
 st.session_state.CAPEC = {}
@@ -243,10 +247,11 @@ def find_capec_related_attacks_llm(use_case_scenario_title, use_case_scenario_de
     user = f"Given this Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
     user += f"Given this Use Case Scenario Description,\n{use_case_scenario_description}\n\n"
     user += f"Given these CAPEC attack patterns,\n{capec_attack_patterns}\n\n"
-    user += 'From your understanding of the Use Case Scenario Title and Use Case Scenario Description and CAPEC attack patterns, find CAPEC attack pattern(s) that have high relevance and high match with the threat model(s) with confidence of above 95%% only. Also, for the found and matched attack pattern(s), give an explanation and confidence score as to why the attack pattern is found and matched. Do not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.\n{"content": [{"capec_id":"", "explanation":"", "confidence":""}]}\nThe JSON response:'
+    user += 'From your understanding of the Use Case Scenario Title and Use Case Scenario Description and CAPEC attack patterns, find CAPEC attack pattern(s) that have high relevance and high match with the threat model(s) with confidence of above 98%% only. Also, for the found and matched attack pattern(s), give an explanation and confidence score as to why the attack pattern is found and matched. Do not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.\n{"content": [{"capec_id":"", "explanation":"", "confidence":""}]}\nThe JSON response:'
 
     completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k",
+        # model="gpt-3.5-turbo-16k",
+        model="gpt-4",
         messages=[
             {"role": "system", "content": system},
             {"role": "user", "content": user}
@@ -277,13 +282,13 @@ def find_capec_related_attacks_llm(use_case_scenario_title, use_case_scenario_de
                 if child in st.session_state.CAPEC.keys():
                     text += f"{related_capec_id}({related_capec_id}:{st.session_state.CAPEC[related_capec_id]['type']}) --> {child}({child}: {st.session_state.CAPEC[child]['type']})\n"
 
-    if text:
-        capec_related_attacks_graph(
-            f"""
-            graph LR
-            {text}
-            """
-        )
+    # if text:
+    #     capec_related_attacks_graph(
+    #         f"""
+    #         graph LR
+    #         {text}
+    #         """
+    #     )
 
     return related_attacks
 
@@ -453,8 +458,9 @@ def find_weaknesses_and_countermeasures(found_CAPEC_attacks):
             related_weaknesses = st.session_state.CAPEC[capec_id]["related_weaknesses"]
             if related_weaknesses:
                 for related_weakness in related_weaknesses:
-                    if st.session_state.CWE[related_weakness]:
-                        CWEs_matched.add(related_weakness)
+                    if related_weakness in st.session_state.CWE.keys():
+                        if st.session_state.CWE[related_weakness]:
+                            CWEs_matched.add(related_weakness)
 
     # find related CWEs by matched CWEs
     # parent_child_matched_CWEs = set()
@@ -478,6 +484,90 @@ def find_weaknesses_and_countermeasures(found_CAPEC_attacks):
                 ASVSs_matched.add(ASVS_item_key)
 
     return CWEs_matched, ASVSs_matched
+
+def read_capec_data():
+    CAPEC = {}
+    with open('./data/capec_1000.csv', 'r') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            id = row["ID"]
+            name = row["Name"]
+            description = row["Description"]
+            related_weaknesses = row["Related Weaknesses"]
+            related_attack_patterns = row["Related Attack Patterns"]
+            child_related_attack_patterns_matches = re.findall(
+                r"ChildOf:CAPEC ID:(\d+)",
+                related_attack_patterns
+            )
+            CAPEC[f"CAPEC-{id}"] = {
+                "capec_id": f"CAPEC-{id}",
+                "description": description,
+                "type": name,
+                "related_weaknesses": [f"CWE-{rw}" for rw in related_weaknesses.replace("-","").split("::")],
+                "child_relation": [f"CAPEC-{capec_id}" for capec_id in child_related_attack_patterns_matches],
+                "parent_relation": set()
+            }
+    
+    for key, val in CAPEC.items():
+        for child in val["child_relation"]:
+            if child in CAPEC.keys():
+                existing = CAPEC[child]
+                existing["parent_relation"].add(key)
+                CAPEC[child] = existing
+    
+    for key, val in CAPEC.items():
+        val["parent_relation"] = list(val["parent_relation"])
+    
+    st.session_state.CAPEC = CAPEC
+
+def read_cwe_data():
+    CWE = {}
+    with open('./data/cwe_699.csv', 'r') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            id = row["CWE-ID"]
+            name = row["Name"]
+            description = row["Description"]
+            related_weaknesses = row["Related Weaknesses"]
+            child_related_weaknesses_matches = re.findall(
+                r"ChildOf:CWE ID:(\d+)",
+                related_weaknesses
+            )
+            CWE[f"CWE-{id}"] = {
+                "cwe_id": f"CWE-{id}",
+                "description": description,
+                "type": name,
+                "child_relation": [f"CWE-{cwe_id}" for cwe_id in child_related_weaknesses_matches],
+                "parent_relation": set()
+            }
+    
+    for key, val in CWE.items():
+        for child in val["child_relation"]:
+            if child in CWE.keys():
+                existing = CWE[child]
+                existing["parent_relation"].add(key)
+                CWE[child] = existing
+    
+    for key, val in CWE.items():
+        val["parent_relation"] = list(val["parent_relation"])
+    
+    st.session_state.CWE = CWE
+
+def seperate_capec():
+    def chunks(data, SIZE=10000):
+        it = iter(data)
+        for i in range(0, len(data), SIZE):
+            yield {k:data[k] for k in islice(it, SIZE)}
+
+
+    capec_attack_patterns_list = []
+    for item in chunks(st.session_state.CAPEC, 50):
+        capec_attack_patterns_temp = ""
+        for CAPEC_atk_pattern_id, CAPEC_atk_pattern in item.items():
+            capec_attack_patterns_temp += f"CAPEC id: {CAPEC_atk_pattern_id}: CAPEC title: {CAPEC_atk_pattern['type']}. CAPEC description: {CAPEC_atk_pattern['description']}\n"
+        capec_attack_patterns_list.append(capec_attack_patterns_temp)
+
+    return capec_attack_patterns_list
 
 def gen_prompt(
     use_case_scenario,
@@ -508,6 +598,34 @@ def gen_prompt(
     user += 'From your understanding of how to construct a Misuse Case Scenario and the given examples of Misuse Case Scenario, propose best 5 unique Misuse Case Scenarios in Gherkin language syntax from above Use Case Scenario, CAPEC, CWEs, SWG O-RAN Components Threat Model (if not none), SWG O-RAN Near-RT RIC Component Threat Model (if not none) and SWG Security Analysis for Near-RT RIC and xApps (if not none). Output this in a JSON array of objects, the object must follow in this format, {"misuse_case_scenario":""}. The misuse case scenarios proposed should not be exactly the same as the use case scenario.'
     return system, user, system+user
 
+def gen_prompt(
+    use_case_scenario,
+    use_case_scenario_title,
+    CAPEC,
+    CWE,
+    ASVS,
+    SWG_O_RAN_Components_Threat_Model,
+    SWG_O_RAN_Near_RT_RIC_Components_Threat_Model,
+    SWG_Security_Analysis_for_Near_RT_RIC_and_xApps,
+    SWG_Security_Analysis_for_Near_RT_RIC_and_xApps_mitigations,
+    Examples_Misuse_Case_Scenario,
+):
+    NONE = "None"
+    system = "You are a cyber security testing expert. You are familiar with writing security test cases. Also, you are familiar with CAPEC, CWE and SWG O-RAN Security.\n\n"
+    user = f"Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
+    user += f"Use Case Scenario in Gherkin language syntax,\n{use_case_scenario}\n\n"
+    user += f"CAPEC,\n{CAPEC}\n\n"
+    user += f"CWE mitigations or solutions,\n{CWE}\n\n"
+    user += f"ASVS mitigations or solutions,\n{ASVS}\n\n"
+    user += f"SWG O-RAN Components Threat Model,\n{SWG_O_RAN_Components_Threat_Model if SWG_O_RAN_Components_Threat_Model else NONE}\n\n"
+    user += f"SWG O-RAN Near-RT RIC Component Threat Model,\n{SWG_O_RAN_Near_RT_RIC_Components_Threat_Model if SWG_O_RAN_Near_RT_RIC_Components_Threat_Model else NONE}\n\n"
+    user += f"SWG Security Analysis for Near-RT RIC and xApps,\n{SWG_Security_Analysis_for_Near_RT_RIC_and_xApps if SWG_Security_Analysis_for_Near_RT_RIC_and_xApps else NONE}\n\n"
+    user += f"SWG Security Analysis for Near-RT RIC and xApps mitigations or solutions,\n{SWG_Security_Analysis_for_Near_RT_RIC_and_xApps_mitigations}\n\n"
+    user += "Purpose of Misuse Case Scenario?\n- provides additional information about the potential threats and security controls that security engineers or researchers can use to counter those threats. \n\n"
+    user += "How to construct a Misuse Case Scenario in Gherkin language syntax?\n- provide additional information about the potential threats and security controls that security engineers or researchers can use to counter those threats. \n- For constructing the When statement, use the threat patterns from CAPEC, SWG O-RAN Components Threat Model, SWG O-RAN Near-RT RIC Component Threat Model and SWG Security Analysis for Near-RT RIC and xApps. \n- For constructing the Then statement, use CWE mitigations or solutions, ASVS mitigations or solutions and SWG Security Analysis for Near-RT RIC and xApps mitigations or solutions.\n\n"
+    user += f"Examples of Misuse Case Scenario in Gherkin language syntax,\n{Examples_Misuse_Case_Scenario if Examples_Misuse_Case_Scenario else NONE}\n\n"
+    user += 'From your understanding of how to construct a Misuse Case Scenario and the given examples of Misuse Case Scenario, propose best 5 unique Misuse Case Scenarios in Gherkin language syntax from above Use Case Scenario, CAPEC, CWEs, SWG O-RAN Components Threat Model (if not none), SWG O-RAN Near-RT RIC Component Threat Model (if not none) and SWG Security Analysis for Near-RT RIC and xApps (if not none). Output this in a JSON array of objects, the object must follow in this format, {"misuse_case_scenario":""}. The misuse case scenarios proposed should not be exactly the same as the use case scenario.'
+    return system, user, system+user
 
 # Initial page config
 st.set_page_config(
@@ -533,12 +651,9 @@ def cs_sidebar():
 def read_data():
     with open('./data/asvs.json', "r") as asvs_file:
         st.session_state.ASVS = json.load(asvs_file)
-    
-    with open('./data/capec.json', "r") as capec_file:
-        st.session_state.CAPEC = json.load(capec_file)
 
-    with open('./data/cwe.json', "r") as cwe_file:
-        st.session_state.CWE = json.load(cwe_file)
+    read_capec_data()
+    read_cwe_data()
 
     with open('./data/oran-components.json', "r") as oran_components_file:
         st.session_state.ORAN_COMPONENTS = json.load(oran_components_file)
@@ -625,110 +740,39 @@ def second_section():
         else:
             st.session_state.ucs = manual_ucs
 
-        section3_button = st.form_submit_button("Section 3")
-
-        if section3_button:
-            # Trigger the second section
-            st.session_state.show_section_3 = True
-
-    # This will only show the second section if 'show_section_2' is set in session_state.
-    if st.session_state.get('show_section_3', False):
-        third_section()
-
-def third_section():
-    st.title("Section 3")
-
-    with st.form(key='third_section'):
-        st.subheader("Step 3: Parts-of-Speech Tagging")
-        st.session_state.new_ucs = "".join([sentence.strip() + " " for sentence in st.session_state.ucs.split("\n")])
-        st.session_state.ents, st.session_state.ent_html = visualize_pos(st.session_state.new_ucs)
-        st.markdown(st.session_state.ent_html, unsafe_allow_html=True)
-
-        st.subheader("Step 4: Generate Use Case Scenario Model")
-        st.selected_seqs = []
-        if st.session_state.ents:
-            gen_ent_with_word(st.session_state.ents, st.session_state.new_ucs)
-            st.session_state.nouns = concat_nouns(st.session_state.ents)
-            st.session_state.subject = st.radio(
-                "Step 3.1: Select Subject",
-                [noun.strip() for noun in set(st.session_state.nouns)],
-            )
-
-            st.session_state.outcome_index, st.session_state.outcomes = select_outcome(
-                [sentence.strip() for sentence in st.session_state.ucs.split("\n")]
-            )
-            st.session_state.outcome = st.radio("Step 3.2: Select Outcome", st.session_state.outcomes)
-
-            st.session_state.sequences = select_sequence(
-                [sentence.strip() for sentence in st.session_state.ucs.split("\n")], st.session_state.outcome_index
-            )
-            st.session_state.selected_seqs = st.multiselect("Step 3.3: Select Sequences", st.session_state.sequences)
-
-            st.session_state.selected_seqs_graph = ""
-            selected_seqs_graph_temp = ""
-            st.session_state.data_assets = []
-            st.session_state.near_rt_ric_assets = []
-            st.session_state.actions = []
-            for index in range(len(st.session_state.selected_seqs)):
-                st.session_state.seq_text = st.session_state.selected_seqs[index]
-                st.session_state.seq_ents = gen_ents(st.session_state.seq_text)
-                gen_ent_with_word(st.session_state.seq_ents, st.session_state.seq_text)
-                st.session_state.actions = concat_verbs(st.session_state.seq_ents)
-                st.session_state.data_assets = select_data_asset(st.session_state.seq_ents)
-                st.session_state.near_rt_ric_assets = select_near_rt_ric_asset(st.session_state.seq_ents)
-                selected_seqs_graph_temp += f"D --> E{index}(Action: {','.join(st.session_state.actions)})\n"
-                selected_seqs_graph_temp += (
-                    f"E{index} --> F{index}(Data Assets: {','.join(st.session_state.data_assets)})\n"
-                )
-                selected_seqs_graph_temp += f"F{index} --> G{index}(O-RAN Assets: {','.join(st.session_state.near_rt_ric_assets)})\n"
-                st.session_state.selected_seqs_graph = selected_seqs_graph_temp
-        
-        # Submit button for the form
-        section4_button = st.form_submit_button("section 4")
-        
-        if section4_button:
-            # Trigger the second section
-            st.session_state.show_section_4 = True
-
-    if st.session_state.get('show_section_4', False):
-        fourth_section()
-
-def fourth_section():
-    ucs_graph(
-        f"""
-        graph TD
-            A({st.session_state.ucstitle})
-            A --> B(Subject: {st.session_state.subject})
-            A --> C(Outcome: {st.session_state.outcome})
-            A --> D(Sequences)
-            {st.session_state.selected_seqs_graph}
-        """
-    )
-
-    with st.form(key='fourth_section'):
-        st.header("2. Find Related Attacks")
-        
-        # Submit button for the form
-        section5_button = st.form_submit_button("section 5")
-        
+        section5_button = st.form_submit_button("Section 5")
         if section5_button:
-            # Trigger the second section
             st.session_state.show_section_5 = True
 
     if st.session_state.get('show_section_5', False):
         fifth_section()
 
 def fifth_section():
-    capec_related_attacks = set()
-    oran_components_related_attacks = set()
-    oran_near_rt_ric_related_attacks = set()
-    oran_security_analysis_related_attacks = set()
+    st.session_state.capec_related_attacks = set()
+    st.session_state.oran_components_related_attacks = set()
+    st.session_state.oran_near_rt_ric_related_attacks = set()
+    st.session_state.oran_security_analysis_related_attacks = set()
 
     if st.session_state.ucs != "" and st.session_state.ucstitle != "":
+        st.session_state.new_ucs = "".join([sentence.strip() + " " for sentence in st.session_state.ucs.split("\n")])
+        st.session_state.ents, st.session_state.ent_html = visualize_pos(st.session_state.new_ucs)
+        
         st.session_state.capec_attack_patterns = ""
+        capec_attack_patterns_temp_list = seperate_capec()
+
+        capec_attack_patterns_set = set()
+        for capec_attack_patterns_temp in capec_attack_patterns_temp_list:
+            capec_related_attacks = find_capec_related_attacks_llm(st.session_state.ucs, st.session_state.ucstitle, capec_attack_patterns_temp)
+            print(capec_related_attacks)
+            capec_attack_patterns_set.update(capec_related_attacks)
+            time.sleep(20)
+
         capec_attack_patterns_temp = ""
-        for CAPEC_atk_pattern_id, CAPEC_atk_pattern in st.session_state.CAPEC.items():
-            capec_attack_patterns_temp += f"CAPEC id: {CAPEC_atk_pattern_id}: CAPEC Title: {CAPEC_atk_pattern['type']}. CAPEC description: {CAPEC_atk_pattern['description']}\n"
+        for related_attack in capec_related_attacks:
+            capec_id = dict(related_attack)["capec_id"].strip()
+            title = st.session_state.CAPEC[capec_id]["type"]
+            description = st.session_state.CAPEC[capec_id]["description"]
+            capec_attack_patterns_temp += f"CAPEC id: {capec_id}: CAPEC Title: {title}. CAPEC description: {description}\n"
 
         st.session_state.capec_related_attacks = find_capec_related_attacks_llm(st.session_state.ucs, st.session_state.ucstitle, capec_attack_patterns_temp)
 
@@ -839,166 +883,130 @@ def fifth_section():
         else:
             st.write("There are no O-RAN Security Analysis on Near-RT RIC and xApps Related Attacks found.")
 
-    with st.form(key='fifth_section'):
-        # Submit button for the form
-        section6_button = st.form_submit_button("Recommend Countermeasures and Construct Misuse Case Scenario")
-        
-        if section6_button:
-            # Trigger the second section
-            st.session_state.show_section_6 = True
+        st.header("3. Construct Misuse Case Scenario")
 
-    if st.session_state.get('show_section_6', False):
-        sixth_section()
+        st.session_state.CWEs_matched, st.session_state.ASVSs_matched = find_weaknesses_and_countermeasures(
+            st.session_state.capec_related_attacks
+        )
+        st.subheader("CWE")
+        if st.session_state.CWEs_matched:
+            for CWE_matched in st.session_state.CWEs_matched:
+                CWE_id = st.session_state.CWE[CWE_matched]["cwe_id"]
+                CWE_type = st.session_state.CWE[CWE_matched]["type"]
+                CWE_description = st.session_state.CWE[CWE_matched]["description"]
+                st.write(f"ID: {CWE_id}")
+                st.write(f"Type: {CWE_type}")
+                st.write(f"Description: {CWE_description}\n")
+                st.write("")
+        else:
+            st.write("CWE not found")
 
-def sixth_section():
-    st.header("3. Construct Misuse Case Scenario")
+        st.subheader("ASVS Countermeasures")
+        if st.session_state.ASVSs_matched:
+            for ASVS_matched in st.session_state.ASVSs_matched:
+                ASVS_id = st.session_state.ASVS[ASVS_matched]["asvs_id"]
+                ASVS_type = st.session_state.ASVS[ASVS_matched]["type"]
+                ASVS_description = st.session_state.ASVS[ASVS_matched]["description"]
+                st.write(f"ID: {ASVS_id}")
+                st.write(f"Type: {ASVS_type}")
+                st.write(f"Description: {ASVS_description}\n")
+                st.write("")
+        else:
+            st.write("ASVS Countermeasures not found")
 
-    st.session_state.CWEs_matched, st.session_state.ASVSs_matched = find_weaknesses_and_countermeasures(
-        st.session_state.capec_related_attacks
-    )
-    st.subheader("CWE")
-    if st.session_state.CWEs_matched:
+        st.subheader("O-RAN Near-RT RIC Countermeasures")
+        st.write("There are no O-RAN Near-RT RIC Countermeasures found.")
+
+        st.subheader("O-RAN Near-RT RIC xApp Countermeasures")
+        st.write("There are no O-RAN Near-RT RIC xApp Countermeasures found.")
+
+        st.subheader("Suggested Prompt Design")
+        CAPEC_prompt = ""
+        for capec_related_attack in st.session_state.capec_related_attacks:
+            capec_id = dict(capec_related_attack)['capec_id']
+            CAPEC_type = st.session_state.CAPEC[capec_id]["type"]
+            CAPEC_description = st.session_state.CAPEC[capec_id]["description"]
+            CAPEC_prompt += f"{capec_id}: {CAPEC_type}. {CAPEC_description}\n"
+
+        CWE_prompt = ""
         for CWE_matched in st.session_state.CWEs_matched:
             CWE_id = st.session_state.CWE[CWE_matched]["cwe_id"]
             CWE_type = st.session_state.CWE[CWE_matched]["type"]
             CWE_description = st.session_state.CWE[CWE_matched]["description"]
-            st.write(f"ID: {CWE_id}")
-            st.write(f"Type: {CWE_type}")
-            st.write(f"Description: {CWE_description}\n")
-            st.write("")
-    else:
-        st.write("CWE not found")
+            CWE_prompt += f"{CWE_id}: {CWE_type}. {CWE_description}\n"
 
-    st.subheader("ASVS Countermeasures")
-    if st.session_state.ASVSs_matched:
+        ASVS_prompt = ""
         for ASVS_matched in st.session_state.ASVSs_matched:
             ASVS_id = st.session_state.ASVS[ASVS_matched]["asvs_id"]
             ASVS_type = st.session_state.ASVS[ASVS_matched]["type"]
             ASVS_description = st.session_state.ASVS[ASVS_matched]["description"]
-            st.write(f"ID: {ASVS_id}")
-            st.write(f"Type: {ASVS_type}")
-            st.write(f"Description: {ASVS_description}\n")
-            st.write("")
-    else:
-        st.write("ASVS Countermeasures not found")
+            ASVS_prompt += f"{ASVS_id}: {ASVS_type}. {ASVS_description}\n"
 
-    st.subheader("O-RAN Near-RT RIC Countermeasures")
-    st.write("There are no O-RAN Near-RT RIC Countermeasures found.")
+        ORAN_COMPONENTS_prompt = ""
+        for oran_components_atk_pattern in st.session_state.ORAN_COMPONENTS:
+            for related_attack in st.session_state.oran_components_related_attacks:
+                related_id = dict(related_attack)["threat_id"]
+                if oran_components_atk_pattern["threat_id"] == related_id:
+                    ORAN_COMPONENT_TITLE = oran_components_atk_pattern["threat_title"]
+                    ORAN_COMPONENT_DESCRIPTION = oran_components_atk_pattern["threat_description"]
+                    ORAN_COMPONENTS_prompt += f"Title: {ORAN_COMPONENT_TITLE} Description: {ORAN_COMPONENT_DESCRIPTION}\n"
 
-    st.subheader("O-RAN Near-RT RIC xApp Countermeasures")
-    st.write("There are no O-RAN Near-RT RIC xApp Countermeasures found.")
+        ORAN_NEARRT_RIC_prompt = ""
+        for oran_near_rt_ric_related_attack in st.session_state.oran_near_rt_ric_related_attacks:
+            related_oran_near_rt_ric_id = dict(oran_near_rt_ric_related_attack)["threat_id"]
+            TITLE = st.session_state.ORAN_NEAR_RT_RIC[related_oran_near_rt_ric_id]["threat_title"]
+            DESCRIPTION = st.session_state.ORAN_NEAR_RT_RIC[related_oran_near_rt_ric_id]["threat_description"]
+            ORAN_NEARRT_RIC_prompt += f"Title: {TITLE} Description: {DESCRIPTION}\n"
 
-    with st.form(key='sixth_section'):
-        # Submit button for the form
-        section7_button = st.form_submit_button("Recommend Prompt Design")
-        
-        if section7_button:
-            # Trigger the second section
-            st.session_state.show_section_7 = True
+        ORAN_SECURITY_ANALYSIS_prompt = ""
+        ORAN_SECURITY_ANALYSIS_SECURITY_REQS_prompt = ""
+        for oran_security_analysis_related_attack in st.session_state.oran_security_analysis_related_attacks:
+            related_oran_security_analysis_id = dict(oran_security_analysis_related_attack)["threat_id"]
+            TITLE = st.session_state.ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["key_issue_title"]
+            DESCRIPTION = st.session_state.ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["key_issue_detail"]
+            SECURITY_THREATS = ", ".join(st.session_state.ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["security_threats"])
+            SECURITY_REQUIREMENTS = ", ".join(st.session_state.ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["potential_security_requirements"])
+            ORAN_SECURITY_ANALYSIS_prompt += f"Title: {TITLE} Description: {DESCRIPTION} Security Threats: {SECURITY_THREATS}\n"
+            ORAN_SECURITY_ANALYSIS_SECURITY_REQS_prompt += f"Security Mitigations or Solutions: {SECURITY_REQUIREMENTS}\n"
 
-    if st.session_state.get('show_section_7', False):
-        seventh_section()
+        Examples_Misuse_Case_Scenario = ""
+        for index in range(len(st.session_state.MCS)):
+            Examples_Misuse_Case_Scenario += f"Misuse Case Scenario #{index+1}: "+st.session_state.MCS[index]+"\n"
 
-def seventh_section():
-    st.subheader("Suggested Prompt Design")
-    CAPEC_prompt = ""
-    for capec_related_attack in st.session_state.capec_related_attacks:
-        capec_id = dict(capec_related_attack)['capec_id']
-        CAPEC_type = st.session_state.CAPEC[capec_id]["type"]
-        CAPEC_description = st.session_state.CAPEC[capec_id]["description"]
-        CAPEC_prompt += f"{capec_id}: {CAPEC_type}. {CAPEC_description}\n"
+        st.session_state.system, st.session_state.user, st.session_state.prompt = gen_prompt(
+            st.session_state.ucs,
+            st.session_state.ucstitle,
+            CAPEC_prompt,
+            CWE_prompt,
+            ASVS_prompt,
+            ORAN_COMPONENTS_prompt,
+            ORAN_NEARRT_RIC_prompt,
+            ORAN_SECURITY_ANALYSIS_prompt,
+            ORAN_SECURITY_ANALYSIS_SECURITY_REQS_prompt,
+            Examples_Misuse_Case_Scenario,
+        )
 
-    CWE_prompt = ""
-    for CWE_matched in st.session_state.CWEs_matched:
-        CWE_id = st.session_state.CWE[CWE_matched]["cwe_id"]
-        CWE_type = st.session_state.CWE[CWE_matched]["type"]
-        CWE_description = st.session_state.CWE[CWE_matched]["description"]
-        CWE_prompt += f"{CWE_id}: {CWE_type}. {CWE_description}\n"
+        st.text_area(label="prompt_design", height=850, value=st.session_state.prompt, disabled=True)
 
-    ASVS_prompt = ""
-    for ASVS_matched in st.session_state.ASVSs_matched:
-        ASVS_id = st.session_state.ASVS[ASVS_matched]["asvs_id"]
-        ASVS_type = st.session_state.ASVS[ASVS_matched]["type"]
-        ASVS_description = st.session_state.ASVS[ASVS_matched]["description"]
-        ASVS_prompt += f"{ASVS_id}: {ASVS_type}. {ASVS_description}\n"
+        st.session_state.option = st.selectbox(
+            'Which Generative AI LLM Model?',
+            ('gpt-3.5-turbo-16k', 'gpt-4')
+        )
 
-    ORAN_COMPONENTS_prompt = ""
-    for oran_components_atk_pattern in st.session_state.ORAN_COMPONENTS:
-        for related_attack in st.session_state.oran_components_related_attacks:
-            related_id = dict(related_attack)["threat_id"]
-            if oran_components_atk_pattern["threat_id"] == related_id:
-                ORAN_COMPONENT_TITLE = oran_components_atk_pattern["threat_title"]
-                ORAN_COMPONENT_DESCRIPTION = oran_components_atk_pattern["threat_description"]
-                ORAN_COMPONENTS_prompt += f"Title: {ORAN_COMPONENT_TITLE} Description: {ORAN_COMPONENT_DESCRIPTION}\n"
+        if st.session_state.system and st.session_state.user and st.session_state.prompt and st.session_state.option:
+            with st.spinner("Getting LLM generated Misuse Case Scenarios"):
+                completion = openai.ChatCompletion.create(
+                    model=st.session_state.option,
+                    messages=[
+                        {"role": "system", "content": st.session_state.system},
+                        {"role": "user", "content": st.session_state.user}
+                    ],
+                    temperature=0
+                )
 
-    ORAN_NEARRT_RIC_prompt = ""
-    for oran_near_rt_ric_related_attack in st.session_state.oran_near_rt_ric_related_attacks:
-        related_oran_near_rt_ric_id = dict(oran_near_rt_ric_related_attack)["threat_id"]
-        TITLE = st.session_state.ORAN_NEAR_RT_RIC[related_oran_near_rt_ric_id]["threat_title"]
-        DESCRIPTION = st.session_state.ORAN_NEAR_RT_RIC[related_oran_near_rt_ric_id]["threat_description"]
-        ORAN_NEARRT_RIC_prompt += f"Title: {TITLE} Description: {DESCRIPTION}\n"
-
-    ORAN_SECURITY_ANALYSIS_prompt = ""
-    ORAN_SECURITY_ANALYSIS_SECURITY_REQS_prompt = ""
-    for oran_security_analysis_related_attack in st.session_state.oran_security_analysis_related_attacks:
-        related_oran_security_analysis_id = dict(oran_security_analysis_related_attack)["threat_id"]
-        TITLE = st.session_state.ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["key_issue_title"]
-        DESCRIPTION = st.session_state.ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["key_issue_detail"]
-        SECURITY_THREATS = ", ".join(st.session_state.ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["security_threats"])
-        SECURITY_REQUIREMENTS = ", ".join(st.session_state.ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["potential_security_requirements"])
-        ORAN_SECURITY_ANALYSIS_prompt += f"Title: {TITLE} Description: {DESCRIPTION} Security Threats: {SECURITY_THREATS}\n"
-        ORAN_SECURITY_ANALYSIS_SECURITY_REQS_prompt += f"Security Mitigations or Solutions: {SECURITY_REQUIREMENTS}\n"
-
-    Examples_Misuse_Case_Scenario = ""
-    for index in range(len(st.session_state.MCS)):
-        Examples_Misuse_Case_Scenario += f"Misuse Case Scenario #{index+1}: "+st.session_state.MCS[index]+"\n"
-
-    st.session_state.system, st.session_state.user, st.session_state.prompt = gen_prompt(
-        st.session_state.ucs,
-        st.session_state.ucstitle,
-        CAPEC_prompt,
-        CWE_prompt,
-        ASVS_prompt,
-        ORAN_COMPONENTS_prompt,
-        ORAN_NEARRT_RIC_prompt,
-        ORAN_SECURITY_ANALYSIS_prompt,
-        ORAN_SECURITY_ANALYSIS_SECURITY_REQS_prompt,
-        Examples_Misuse_Case_Scenario,
-    )
-
-    st.text_area(label="prompt_design", height=850, value=st.session_state.prompt, disabled=True)
-
-    with st.form(key='seventh_section'):
-        # Submit button for the form
-        section8_button = st.form_submit_button("Generate Security Test Cases")
-        
-        if section8_button:
-            # Trigger the second section
-            st.session_state.show_section_8 = True
-
-    if st.session_state.get('show_section_8', False):
-        eighth_section()
-
-def eighth_section():
-    st.session_state.option = st.selectbox(
-        'Which Generative AI LLM Model?',
-        ('gpt-3.5-turbo-16k', 'gpt-4')
-    )
-
-    if st.session_state.system and st.session_state.user and st.session_state.prompt and st.session_state.option:
-        with st.spinner("Getting LLM generated Misuse Case Scenarios"):
-            completion = openai.ChatCompletion.create(
-                model=st.session_state.option,
-                messages=[
-                    {"role": "system", "content": st.session_state.system},
-                    {"role": "user", "content": st.session_state.user}
-                ],
-                temperature=0
-            )
-
-            gen_llm_contents = json.loads(completion.choices[0].message["content"])
-            for llm_content_index in range(len(gen_llm_contents)):
-                st.text_area(label=f"llm_completion_{llm_content_index+1}", height=150, value=gen_llm_contents[llm_content_index]["misuse_case_scenario"], disabled=True)
+                gen_llm_contents = json.loads(completion.choices[0].message["content"])
+                for llm_content_index in range(len(gen_llm_contents)):
+                    st.text_area(label=f"llm_completion_{llm_content_index+1}", height=150, value=gen_llm_contents[llm_content_index]["misuse_case_scenario"], disabled=True)
 
 def main():
     read_data()
