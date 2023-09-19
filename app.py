@@ -627,6 +627,27 @@ def gen_prompt(
     user += 'From your understanding of how to construct a Misuse Case Scenario and the given examples of Misuse Case Scenario, propose best 5 unique Misuse Case Scenarios in Gherkin language syntax from above Use Case Scenario, CAPEC, CWEs, SWG O-RAN Components Threat Model (if not none), SWG O-RAN Near-RT RIC Component Threat Model (if not none) and SWG Security Analysis for Near-RT RIC and xApps (if not none). Output this in a JSON array of objects, the object must follow in this format, {"misuse_case_scenario":""}. The misuse case scenarios proposed should not be exactly the same as the use case scenario.'
     return system, user, system+user
 
+def gen_prompt_no_oran(
+    use_case_scenario,
+    use_case_scenario_title,
+    CAPEC,
+    CWE,
+    ASVS,
+    Examples_Misuse_Case_Scenario,
+):
+    NONE = "None"
+    system = "You are a cyber security testing expert. You are familiar with writing security test cases. Also, you are familiar with CAPEC and CWE Security.\n\n"
+    user = f"Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
+    user += f"Use Case Scenario in Gherkin language syntax,\n{use_case_scenario}\n\n"
+    user += f"CAPEC,\n{CAPEC}\n\n"
+    user += f"CWE mitigations or solutions,\n{CWE}\n\n"
+    user += f"ASVS mitigations or solutions,\n{ASVS}\n\n"
+    user += "Purpose of Misuse Case Scenario?\n- provides additional information about the potential threats and security controls that security engineers or researchers can use to counter those threats. \n\n"
+    user += "How to construct a Misuse Case Scenario in Gherkin language syntax?\n- provide additional information about the potential threats and security controls that security engineers or researchers can use to counter those threats. \n- For constructing the When statement, use the threat patterns from CAPEC.\n- For constructing the Then statement, use CWE mitigations or solutions, ASVS mitigations or solutions.\n\n"
+    user += f"Examples of Misuse Case Scenario in Gherkin language syntax,\n{Examples_Misuse_Case_Scenario if Examples_Misuse_Case_Scenario else NONE}\n\n"
+    user += 'From your understanding of how to construct a Misuse Case Scenario and the given examples of Misuse Case Scenario, propose best 5 unique Misuse Case Scenarios in Gherkin language syntax from above Use Case Scenario, CAPEC and CWEs. Output this in a JSON array of objects, the object must follow in this format, {"misuse_case_scenario":""}. The misuse case scenarios proposed should not be exactly the same as the use case scenario.'
+    return system, user, system+user
+
 # Initial page config
 st.set_page_config(
     page_title="O-RAN Security Test Case Generator",
@@ -749,9 +770,6 @@ def second_section():
 
 def fifth_section():
     st.session_state.capec_related_attacks = set()
-    st.session_state.oran_components_related_attacks = set()
-    st.session_state.oran_near_rt_ric_related_attacks = set()
-    st.session_state.oran_security_analysis_related_attacks = set()
 
     if st.session_state.ucs != "" and st.session_state.ucstitle != "":
         st.session_state.new_ucs = "".join([sentence.strip() + " " for sentence in st.session_state.ucs.split("\n")])
@@ -776,27 +794,6 @@ def fifth_section():
 
         st.session_state.capec_related_attacks = find_capec_related_attacks_llm(st.session_state.ucs, st.session_state.ucstitle, capec_attack_patterns_temp)
 
-        st.session_state.oran_components_attack_patterns = ""
-        oran_components_attack_patterns_temp = ""
-        for oran_components_atk_pattern in st.session_state.ORAN_COMPONENTS:
-            oran_components_attack_patterns_temp += f"Threat id: {oran_components_atk_pattern['threat_id']}: Threat Title: {oran_components_atk_pattern['threat_title']}. Threat description: {oran_components_atk_pattern['threat_description']}\n"
-
-        st.session_state.oran_components_related_attacks = find_oran_components_related_attacks_llm(st.session_state.ucs, st.session_state.ucstitle, oran_components_attack_patterns_temp)
-        
-        st.session_state.oran_near_rt_ric_attack_patterns = ""
-        oran_near_rt_ric_attack_patterns_temp = ""
-        for oran_near_rt_ric_atk_pattern_id, oran_near_rt_ric_atk_pattern in st.session_state.ORAN_NEAR_RT_RIC.items():
-            oran_near_rt_ric_attack_patterns_temp += f"Threat id: {oran_near_rt_ric_atk_pattern_id}: Threat Title: {oran_near_rt_ric_atk_pattern['threat_title']}. Threat description: {oran_near_rt_ric_atk_pattern['threat_description']}\n"
-
-        st.session_state.oran_near_rt_ric_related_attacks = find_oran_near_rt_ric_related_attacks_llm(st.session_state.ucs, st.session_state.ucstitle, oran_near_rt_ric_attack_patterns_temp)
-
-        st.session_state.oran_security_analysis_attack_patterns = ""
-        oran_security_analysis_attack_patterns_temp = ""
-        for oran_security_analysis_atk_pattern_title, oran_security_analysis_atk_pattern in st.session_state.ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS.items():
-            oran_security_analysis_attack_patterns_temp += f"Threat Title: {oran_security_analysis_atk_pattern['key_issue_title']}. Threat description: {oran_security_analysis_atk_pattern['key_issue_detail']}. Security threats: {'.'.join(oran_security_analysis_atk_pattern['security_threats'])}\n"
-
-        st.session_state.oran_security_analysis_related_attacks = find_oran_security_analysis_related_attacks_llm(st.session_state.ucs, st.session_state.ucstitle, oran_security_analysis_attack_patterns_temp)
-
         st.subheader("CAPEC Related Attacks")
         if st.session_state.capec_related_attacks:
             for capec_related_attack in st.session_state.capec_related_attacks:
@@ -818,70 +815,6 @@ def fifth_section():
                 st.write("")
         else:
             st.write("There are no CAPEC Related Attacks found.")
-
-        st.subheader("O-RAN Components Related Attacks")
-        if len(st.session_state.oran_components_related_attacks) > 0:
-            for oran_components_atk_pattern in st.session_state.ORAN_COMPONENTS:
-                for related_attack in st.session_state.oran_components_related_attacks:
-                    related_id = dict(related_attack)["threat_id"]
-                    related_explain = dict(related_attack)['explanation']
-                    related_confidence = dict(related_attack)['confidence']
-                    if oran_components_atk_pattern["threat_id"] == related_id:
-                        ORAN_COMPONENS_ID = oran_components_atk_pattern["threat_id"]
-                        ORAN_COMPONENT_TITLE = oran_components_atk_pattern["threat_title"]
-                        ORAN_COMPONENT_DESCRIPTION = oran_components_atk_pattern["threat_description"]
-                        st.write(f"ID: {ORAN_COMPONENS_ID}")
-                        st.write(f"Title: {ORAN_COMPONENT_TITLE}")
-                        st.write(f"Description: {ORAN_COMPONENT_DESCRIPTION}")
-                        st.write(f"Explanation: {related_explain}")
-                        st.write(f"Confidence Score: {related_confidence}")
-                        st.write("")
-        else:
-            st.write("There are no O-RAN Components Related Attacks found.")
-
-        st.subheader("O-RAN Near-RT RIC Related Attacks")
-        if len(st.session_state.oran_near_rt_ric_related_attacks) > 0:
-            for oran_near_rt_ric_related_attack in st.session_state.oran_near_rt_ric_related_attacks:
-                related_oran_near_rt_ric_id = dict(oran_near_rt_ric_related_attack)["threat_id"]
-                related_oran_near_rt_ric_explain = dict(oran_near_rt_ric_related_attack)['explanation']
-                related_oran_near_rt_ric_confidence = dict(oran_near_rt_ric_related_attack)['confidence']
-                
-                if related_oran_near_rt_ric_id not in st.session_state.ORAN_NEAR_RT_RIC:
-                    continue
-                
-                ID = st.session_state.ORAN_NEAR_RT_RIC[related_oran_near_rt_ric_id]["threat_id"]
-                TITLE = st.session_state.ORAN_NEAR_RT_RIC[related_oran_near_rt_ric_id]["threat_title"]
-                DESCRIPTION = st.session_state.ORAN_NEAR_RT_RIC[related_oran_near_rt_ric_id]["threat_description"]
-                st.write(f"ID: {ID}")
-                st.write(f"Title: {TITLE}")
-                st.write(f"Description: {DESCRIPTION}")
-                st.write(f"Explanation: {related_oran_near_rt_ric_explain}")
-                st.write(f"Confidence Score: {related_oran_near_rt_ric_confidence}")
-                st.write("")
-        else:
-            st.write("There are no O-RAN Near-RT RIC Related Attacks found.")
-
-        st.subheader("O-RAN Security Analysis on Near-RT RIC and xApps Related Attacks")
-        if len(st.session_state.oran_security_analysis_related_attacks) > 0:
-            for oran_security_analysis_related_attack in st.session_state.oran_security_analysis_related_attacks:
-                related_oran_security_analysis_id = dict(oran_security_analysis_related_attack)["threat_id"]
-                related_oran_security_analysis_explain = dict(oran_security_analysis_related_attack)['explanation']
-                related_oran_security_analysis_confidence = dict(oran_security_analysis_related_attack)['confidence']
-                
-                if related_oran_security_analysis_id not in st.session_state.ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS:
-                    continue
-
-                TITLE = st.session_state.ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["key_issue_title"]
-                DESCRIPTION = st.session_state.ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["key_issue_detail"]
-                SECURITY_THREATS = st.session_state.ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["security_threats"]
-                st.write(f"Title: {TITLE}")
-                st.write(f"Description: {DESCRIPTION}")
-                st.write(f"Security Threats: {SECURITY_THREATS}")
-                st.write(f"Explanation: {related_oran_security_analysis_explain}")
-                st.write(f"Confidence Score: {related_oran_security_analysis_confidence}")
-                st.write("")
-        else:
-            st.write("There are no O-RAN Security Analysis on Near-RT RIC and xApps Related Attacks found.")
 
         st.header("3. Construct Misuse Case Scenario")
 
@@ -914,12 +847,6 @@ def fifth_section():
         else:
             st.write("ASVS Countermeasures not found")
 
-        st.subheader("O-RAN Near-RT RIC Countermeasures")
-        st.write("There are no O-RAN Near-RT RIC Countermeasures found.")
-
-        st.subheader("O-RAN Near-RT RIC xApp Countermeasures")
-        st.write("There are no O-RAN Near-RT RIC xApp Countermeasures found.")
-
         st.subheader("Suggested Prompt Design")
         CAPEC_prompt = ""
         for capec_related_attack in st.session_state.capec_related_attacks:
@@ -942,47 +869,16 @@ def fifth_section():
             ASVS_description = st.session_state.ASVS[ASVS_matched]["description"]
             ASVS_prompt += f"{ASVS_id}: {ASVS_type}. {ASVS_description}\n"
 
-        ORAN_COMPONENTS_prompt = ""
-        for oran_components_atk_pattern in st.session_state.ORAN_COMPONENTS:
-            for related_attack in st.session_state.oran_components_related_attacks:
-                related_id = dict(related_attack)["threat_id"]
-                if oran_components_atk_pattern["threat_id"] == related_id:
-                    ORAN_COMPONENT_TITLE = oran_components_atk_pattern["threat_title"]
-                    ORAN_COMPONENT_DESCRIPTION = oran_components_atk_pattern["threat_description"]
-                    ORAN_COMPONENTS_prompt += f"Title: {ORAN_COMPONENT_TITLE} Description: {ORAN_COMPONENT_DESCRIPTION}\n"
-
-        ORAN_NEARRT_RIC_prompt = ""
-        for oran_near_rt_ric_related_attack in st.session_state.oran_near_rt_ric_related_attacks:
-            related_oran_near_rt_ric_id = dict(oran_near_rt_ric_related_attack)["threat_id"]
-            TITLE = st.session_state.ORAN_NEAR_RT_RIC[related_oran_near_rt_ric_id]["threat_title"]
-            DESCRIPTION = st.session_state.ORAN_NEAR_RT_RIC[related_oran_near_rt_ric_id]["threat_description"]
-            ORAN_NEARRT_RIC_prompt += f"Title: {TITLE} Description: {DESCRIPTION}\n"
-
-        ORAN_SECURITY_ANALYSIS_prompt = ""
-        ORAN_SECURITY_ANALYSIS_SECURITY_REQS_prompt = ""
-        for oran_security_analysis_related_attack in st.session_state.oran_security_analysis_related_attacks:
-            related_oran_security_analysis_id = dict(oran_security_analysis_related_attack)["threat_id"]
-            TITLE = st.session_state.ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["key_issue_title"]
-            DESCRIPTION = st.session_state.ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["key_issue_detail"]
-            SECURITY_THREATS = ", ".join(st.session_state.ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["security_threats"])
-            SECURITY_REQUIREMENTS = ", ".join(st.session_state.ORAN_SECURITY_ANALYSIS_NEAR_RT_RIC_XAPPS[related_oran_security_analysis_id]["potential_security_requirements"])
-            ORAN_SECURITY_ANALYSIS_prompt += f"Title: {TITLE} Description: {DESCRIPTION} Security Threats: {SECURITY_THREATS}\n"
-            ORAN_SECURITY_ANALYSIS_SECURITY_REQS_prompt += f"Security Mitigations or Solutions: {SECURITY_REQUIREMENTS}\n"
-
         Examples_Misuse_Case_Scenario = ""
         for index in range(len(st.session_state.MCS)):
             Examples_Misuse_Case_Scenario += f"Misuse Case Scenario #{index+1}: "+st.session_state.MCS[index]+"\n"
 
-        st.session_state.system, st.session_state.user, st.session_state.prompt = gen_prompt(
+        st.session_state.system, st.session_state.user, st.session_state.prompt = gen_prompt_no_oran(
             st.session_state.ucs,
             st.session_state.ucstitle,
             CAPEC_prompt,
             CWE_prompt,
             ASVS_prompt,
-            ORAN_COMPONENTS_prompt,
-            ORAN_NEARRT_RIC_prompt,
-            ORAN_SECURITY_ANALYSIS_prompt,
-            ORAN_SECURITY_ANALYSIS_SECURITY_REQS_prompt,
             Examples_Misuse_Case_Scenario,
         )
 
