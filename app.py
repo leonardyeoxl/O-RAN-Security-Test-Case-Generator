@@ -186,10 +186,11 @@ def capec_related_attacks_graph(graph):
     )
 
 def application_test_case_to_ucs(app_source_code, use_case_scenario_examples):
-    system = "You are a cyber security testing expert. You are familiar with writing security test cases and C/C++ programming.\n\n"
-    system += f"Given these application source code in C/C++,\n{app_source_code}\n\n"
-    system += f"Given these examples of Use Case Scenario in Gherkin language syntax,\n{use_case_scenario_examples}\n\n"
-    user = 'Understand the test case in C/C++ and examples of Use Case Scenario in Gherkin language syntax, write only 1 Use Case Scenario based on the given application source code in C/C++.'
+    system = "You are a cyber security testing expert. You are familiar with writing security test cases and programming.\n\n"
+    user = f"Given these application source code,\n{app_source_code}\n\n"
+    # user += f"Given these examples of Use Case Scenario in Gherkin language syntax,\n{use_case_scenario_examples}\n\n"
+    # user += 'Understand the application source code and examples of Use Case Scenario in Gherkin language syntax, write only 1 Use Case Scenario based on the given application source code.'
+    user += 'Understand the application source code, write only 1 Use Case Scenario in Gherkin language syntax based on the given application source code.'
 
     completion = openai.ChatCompletion.create(
         model="gpt-4",
@@ -200,7 +201,33 @@ def application_test_case_to_ucs(app_source_code, use_case_scenario_examples):
         temperature=0
     )
     llm_contents = completion.choices[0].message["content"]
-    return llm_contents
+    pattern = r"Scenario: [^\n]*\n((?:    [^\n]*\n)*)"
+    match = re.search(pattern, llm_contents, re.DOTALL)
+    if match:
+        return match.group(1), llm_contents
+    return "", llm_contents
+
+def ucs_to_ucs_title(ucs):
+    system = "You are a cyber security testing expert. You are familiar with writing security test cases and programming.\n\n"
+    user = f"Given this Use Case Scenario in Gherkin language syntax,\n{ucs}\n\n"
+    # user += f"Given these examples of Use Case Scenario title,\n{use_case_scenario_title_examples}\n\n"
+    # user += 'Understand the application source code and examples of Use Case Scenario title, write only 1 Use Case Scenario title based on the given application source code.'
+    user += 'Understand the Use Case Scenario in Gherkin language syntax, write only 1 Use Case Scenario title based on the given Use Case Scenario.'
+
+    completion = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user}
+        ],
+        temperature=0
+    )
+    llm_contents = completion.choices[0].message["content"]
+    pattern = r"Scenario: ([^\n]*)"
+    match = re.search(pattern, llm_contents, re.DOTALL)
+    if match:
+        return match.group(1), llm_contents
+    return "", llm_contents
 
 def find_capec_related_attacks(data_assets, near_rt_ric_assets, actions):
     related_attacks = set()
@@ -698,6 +725,9 @@ def start_section():
         if 'ucs_from_llm' not in st.session_state:
             st.session_state.ucs_from_llm = ""
 
+        if 'ucs_title_from_llm' not in st.session_state:
+            st.session_state.ucs_title_from_llm = ""
+
         if 'section1_triggered' not in st.session_state:
             st.session_state.section1_triggered = False
 
@@ -723,9 +753,10 @@ def start_section():
 def first_section():
     if st.session_state.app_source_code and st.session_state.section1_triggered:
         with st.spinner("Getting LLM generated Use Case Scenario"):
-            use_case_scenario_examples = "Example 1:\nGiven a dialer xApp and a listener xApp \nAnd dialer xApp connected to RMR transmission medium successfully \nAnd listener xApp connected to RMR transmission medium successfully \nWhen dialer xApp sends a message to the listener xApp via RMR transmission medium \nThen the listener xApp receive the message\n\n"
-            use_case_scenario_examples += "Example 2:\nGiven a new xApp registers with the Near-RT RIC \nAnd the new xApp subscribe to the desired RAN stacks through the E2 termination in the near-RT RICs and the E2 agents on the RAN nodes \nAnd a target xApp is already registered with the Near-RT RIC \nAnd the target xApp subscribed to the desired RAN stacks through the E2 termination in the near-RT RICs and the E2 agents on the RAN nodes \nWhen the new xApp wants to access resources from target xApp \nThen target xApp responds with its resources to the new xApp\n\n"
-            st.session_state.ucs_from_llm = application_test_case_to_ucs(st.session_state.app_source_code, use_case_scenario_examples)
+            use_case_scenario_examples = 'Example 1:\nGiven the store has "UPS" shipping method with "$20.00" fee\nAnd I have product "The Sorting Hat" in the cart\nWhen I specified the shipping address as "Ankh Morpork", "Frost Alley", "90210", "United States" for "Jon Snow"\nThen I should be on the checkout shipping step\nAnd I should see shipping method "UPS" with fee "$20.00"\n'
+            use_case_scenario_examples += 'Example 2:\nGiven the promotion gives free shipping to every order over "$70.00"\nWhen I add product "PHP Mug" to the cart\nAnd I change "PHP Mug" quantity to 4\nThen my cart total should be "$80.00"\nAnd my cart shipping total should be "$0.00"\n'
+            st.session_state.ucs_from_llm, llm_contents = application_test_case_to_ucs(st.session_state.app_source_code, use_case_scenario_examples)
+            st.session_state.ucs_title_from_llm, llm_contents = ucs_to_ucs_title(llm_contents)
             st.session_state.section1_triggered = False
     
     with st.form(key='first_section'):
@@ -743,7 +774,7 @@ def second_section():
 
         st.session_state.ucstitle = st.text_input(
             "Title",
-            value="",
+            value="" if not st.session_state.ucs_title_from_llm else st.session_state.ucs_title_from_llm,
             on_change=None,
             placeholder="Use Case Scenario Title here",
         )
@@ -783,7 +814,7 @@ def fifth_section():
             capec_related_attacks = find_capec_related_attacks_llm(st.session_state.ucs, st.session_state.ucstitle, capec_attack_patterns_temp)
             print(capec_related_attacks)
             capec_attack_patterns_set.update(capec_related_attacks)
-            time.sleep(20)
+            time.sleep(30)
 
         capec_attack_patterns_temp = ""
         for related_attack in capec_related_attacks:
