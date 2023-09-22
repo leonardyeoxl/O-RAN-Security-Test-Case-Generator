@@ -662,17 +662,28 @@ def gen_prompt_no_oran(
     ASVS,
     Examples_Misuse_Case_Scenario,
 ):
+    CONSTRAINTS = "Given two broad types of constraints:\n"
+    CONSTRAINTS += "- Data constraints: refer to restrictions on the input into the application. In particular, those constraints refer to the parameters that are fed into the use case scenario\n"
+    CONSTRAINTS += "- Action constraints: refer to the number of times and order in which a step appears in the use case scenario\n\n"
+    CONSTRAINTS += "Given this three types of data constraints:\n"
+    CONSTRAINTS += "- Access constraint: Certain pieces of information or actions must only be accessible by a select group of users. An example of an access constraint is that a user cannot modify other users' details. Imposing that access constraint would allow developers to identify vulnerabilities such as an Insecure Direct Object Reference (IDOR) with missing authorization checks.\n"
+    CONSTRAINTS += "- Range constraint: Input parameters to the use case scenario must fall within a certain set of values. For example, a logical range for the price of an order item is non-negative numbers, the range of valid icon names is alphanumeric characters, and the range of cancellation amounts is positive numbers above zero.\n"
+    CONSTRAINTS += "- Correlation constraint: Input parameters to the use case scenario must be correlated in a certain way. For example, in a use case scenario that adds money to a digital wallet, the amount added to the wallet must be the same as the amount paid.\n\n"
+    CONSTRAINTS += "Given this three types of action constraints:\n"
+    CONSTRAINTS += "- Prerequisite constraint: An action must be performed for the use case scenario to operate correctly. For example, signing up for an account with an email address requires that address to be verified first before the user is allowed to login\n"
+    CONSTRAINTS += "- Repetition constraint: In the presence of repeated actions (with potentially differing input parameters), the application must behave logically. For example, if a user can reset their password more than once using the same password reset link, it can allow attackers with access to the link to reset that user's password\n"
+    CONSTRAINTS += "- Ordering constraint: Certain actions must be performed in a given order for the use case scenario to operate correctly. For example, changing a user’s email address requires the new email address to be verified before the change is effected. Otherwise, an attacker can redirect a victim's emails to his or her own account\n\n"
+
+
     NONE = "None"
     system = "You are a cyber security testing expert. You are familiar with writing security test cases. Also, you are familiar with CAPEC and CWE Security.\n\n"
-    user = f"Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
-    user += f"Use Case Scenario in Gherkin language syntax,\n{use_case_scenario}\n\n"
-    user += f"CAPEC,\n{CAPEC}\n\n"
-    user += f"CWE mitigations or solutions,\n{CWE}\n\n"
-    user += f"ASVS mitigations or solutions,\n{ASVS}\n\n"
-    user += "Purpose of Misuse Case Scenario?\n- provides additional information about the potential threats and security controls that security engineers or researchers can use to counter those threats. \n\n"
-    user += "How to construct a Misuse Case Scenario in Gherkin language syntax?\n- provide additional information about the potential threats and security controls that security engineers or researchers can use to counter those threats. \n- For constructing the When statement, use the threat patterns from CAPEC.\n- For constructing the Then statement, use CWE mitigations or solutions, ASVS mitigations or solutions.\n\n"
-    user += f"Examples of Misuse Case Scenario in Gherkin language syntax,\n{Examples_Misuse_Case_Scenario if Examples_Misuse_Case_Scenario else NONE}\n\n"
-    user += 'From your understanding of how to construct a Misuse Case Scenario and the given examples of Misuse Case Scenario, propose best 5 unique Misuse Case Scenarios in Gherkin language syntax from above Use Case Scenario, CAPEC and CWEs. Output this in a JSON array of objects, the object must follow in this format, {"misuse_case_scenario":""}. The misuse case scenarios proposed should not be exactly the same as the use case scenario.'
+    user = f"Given the Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
+    user += f"Given the Use Case Scenario in Gherkin language syntax,\n{use_case_scenario}\n\n"
+    user += f"Given these CAPEC,\n{CAPEC}\n\n"
+    user += f"Given these CWE mitigations or solutions,\n{CWE}\n\n"
+    user += f"Given these ASVS mitigations or solutions,\n{ASVS}\n\n"
+    user += f"{CONSTRAINTS}"
+    user += 'Lets think step by step. Understand the given examples of Misuse Case Scenario. Propose best 5 unique Misuse Case Scenarios in Gherkin language syntax that test for violations of those constraints for above Use Case Scenario. Output this in a JSON array of objects, the object must follow in this format, {"misuse_case_scenario":""}. The misuse case scenarios proposed must not be exactly the same as the use case scenario.'
     return system, user, system+user
 
 # Initial page config
