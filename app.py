@@ -660,7 +660,7 @@ def gen_prompt_no_oran(
     CAPEC,
     CWE,
     ASVS,
-    Examples_Misuse_Case_Scenario,
+    Examples_UCS_MCS_Constraints,
 ):
     CONSTRAINTS = "Given two broad types of constraints:\n"
     CONSTRAINTS += "- Data constraints: refer to restrictions on the input into the application. In particular, those constraints refer to the parameters that are fed into the use case scenario\n"
@@ -674,7 +674,6 @@ def gen_prompt_no_oran(
     CONSTRAINTS += "- Repetition constraint: In the presence of repeated actions (with potentially differing input parameters), the application must behave logically. For example, if a user can reset their password more than once using the same password reset link, it can allow attackers with access to the link to reset that user's password\n"
     CONSTRAINTS += "- Ordering constraint: Certain actions must be performed in a given order for the use case scenario to operate correctly. For example, changing a user’s email address requires the new email address to be verified before the change is effected. Otherwise, an attacker can redirect a victim's emails to his or her own account\n\n"
 
-
     NONE = "None"
     system = "You are a cyber security testing expert. You are familiar with writing security test cases. Also, you are familiar with CAPEC and CWE Security.\n\n"
     user = f"Given the Use Case Scenario Title,\n{use_case_scenario_title}\n\n"
@@ -682,8 +681,9 @@ def gen_prompt_no_oran(
     user += f"Given these CAPEC,\n{CAPEC}\n\n"
     user += f"Given these CWE mitigations or solutions,\n{CWE}\n\n"
     user += f"Given these ASVS mitigations or solutions,\n{ASVS}\n\n"
+    user += f"Given the examples of Use Case Scenario and respective Misuse Case Scenario in Gherkin language syntax and respective constraint,\n{Examples_UCS_MCS_Constraints if Examples_UCS_MCS_Constraints else NONE}\n\n"
     user += f"{CONSTRAINTS}"
-    user += 'Lets think step by step. Understand the given examples of Misuse Case Scenario. Propose best 5 unique Misuse Case Scenarios in Gherkin language syntax that test for violations of those constraints for above Use Case Scenario. Output this in a JSON array of objects, the object must follow in this format, {"misuse_case_scenario":""}. The misuse case scenarios proposed must not be exactly the same as the use case scenario.'
+    user += 'Lets think step by step. Understand the given examples of Use Case Scenario and respective Misuse Case Scenario in Gherkin language syntax and respective constraint. Propose best 5 unique Misuse Case Scenarios in Gherkin language syntax that test for violations of those constraints for above Use Case Scenario. Output this in a JSON array of objects, the object must follow in this format, {"misuse_case_scenario":""}. The misuse case scenarios proposed must not be exactly the same as the use case scenario.'
     return system, user, system+user
 
 # Initial page config
@@ -911,9 +911,17 @@ def fifth_section():
             ASVS_description = st.session_state.ASVS[ASVS_matched]["description"]
             ASVS_prompt += f"{ASVS_id}: {ASVS_type}. {ASVS_description}\n"
 
-        Examples_Misuse_Case_Scenario = ""
-        for index in range(len(st.session_state.MCS)):
-            Examples_Misuse_Case_Scenario += f"Misuse Case Scenario #{index+1}: "+st.session_state.MCS[index]+"\n"
+        # Examples_Misuse_Case_Scenario = ""
+        # for index in range(len(st.session_state.MCS)):
+        #     Examples_Misuse_Case_Scenario += f"Misuse Case Scenario #{index+1}: "+st.session_state.MCS[index]+"\n"
+
+        Examples_UCS_MCS_Constraints = ""
+        Examples_UCS_MCS_Constraints += '- Use Case Scenario #1: Given the promotion gives free shipping to every order over "$70.00" When I add product "PHP Mug" to the cart And I change "PHP Mug" quantity to 4 Then my cart total should be "$80.00" And my cart shipping total should be "$0.00"\n'
+        Examples_UCS_MCS_Constraints += '- Respective Misuse Case Scenario #1: Given the promotion gives free shipping to every order over "$70.00" And there is a promotion "Shipping promotion" And this promotion gives free shipping to every order over "$50.00" When I add 4 products "PHP Mug" to the cart Then my cart total should be "$80.00" And my cart shipping total should be "$0.00"\n'
+        Examples_UCS_MCS_Constraints += '- Respective Contraint applied in #1: Repetition constraint\n'
+        Examples_UCS_MCS_Constraints += '- Use Case Scenario #2: When I want to create a new shipping method And I specify its code as "FED_EX_CARRIER" And I specify its position as 0 And I name it "FedEx Carrier" in "English (United States)" And I define it for the zone named "United States" And I choose "Flat rate per shipment" calculator And I specify its amount as 50 for "Web-US" channel And I add it Then I should be notified that it has been successfully created And the shipping method "FedEx Carrier" should appear in the registry\n'
+        Examples_UCS_MCS_Constraints += '- Respective Misuse Case Scenario #2: Given the store operates on a channel named "Web" in "USD" currency And the store is available in "English (United States)" And the store has a zone "United States" with code "US" And I am logged in as an administrator When I want to create a new shipping method And I specify its code as "FED_EX_CARRIER" And I name it "FedEx Carrier" in "English (United States)" And I define it for the zone named "United States" And I choose "Flat rate per shipment" calculator And I specify its amount as "-50.00" for "Web" channel And I try to add it Then I should be notified that shipping charge for "Web" channel cannot be lower than 0 And shipping method with name "FedEx Carrier" should not be added\n'
+        Examples_UCS_MCS_Constraints += '- Respective Contraint applied in #2: Range constraint\n'
 
         st.session_state.system, st.session_state.user, st.session_state.prompt = gen_prompt_no_oran(
             st.session_state.ucs,
@@ -921,7 +929,7 @@ def fifth_section():
             CAPEC_prompt,
             CWE_prompt,
             ASVS_prompt,
-            Examples_Misuse_Case_Scenario,
+            Examples_UCS_MCS_Constraints,
         )
 
         st.text_area(label="prompt_design", height=850, value=st.session_state.prompt, disabled=True)
